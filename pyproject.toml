@@ -1,0 +1,14 @@
+[project]
+name = "llm-mas-control"
+version = "0.1.0"
+description = "An investigation into using LLMs for control of multi-agent systems"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv.sources]
+
+[tool.uv.workspace]
+members = [
+  
+]
