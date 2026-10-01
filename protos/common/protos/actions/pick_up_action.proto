@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+import "common/protos/tile.proto";
+
+message PickUpAction {
+    Tile pick_up_tile = 1;
+}

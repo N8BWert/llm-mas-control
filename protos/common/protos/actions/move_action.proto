@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+import "common/protos/position.proto";
+
+message MoveAction {
+    Position goal_position = 1;
+}

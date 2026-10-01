@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+import "common/protos/position.proto";
+
+message AgentState {
+    int32 id = 1;
+    Position position = 2;
+    bool busy = 3;
+}

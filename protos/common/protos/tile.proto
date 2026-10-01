@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message Tile {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+enum TileState {
+    EMPTY = 0;
+    CASTLE = 1;
+    FARM = 2;
+    QUARRY = 3;
+    WATER = 4;
+    APPLE = 5;
+    OBSCURED = 6;
+}

@@ -1,0 +1,7 @@
+syntax = "proto3";
+ 
+import "common/protos/tile.proto";
+
+message BuildFarmAction {
+    Tile build_farm_tile = 1;
+}

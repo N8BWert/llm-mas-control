@@ -1,0 +1,7 @@
+syntax = "proto3";
+ 
+import "common/protos/tile.proto";
+
+message BuildQuarryAction {
+    Tile build_quarry_tile = 1;
+}

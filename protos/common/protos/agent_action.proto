@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "common/protos/actions/move_action.proto";
+import "common/protos/actions/farm_action.proto";
+import "common/protos/actions/pick_up_action.proto";
+import "common/protos/actions/drop_action.proto";
+import "common/protos/actions/mine_action.proto";
+import "common/protos/actions/build_house_action.proto";
+import "common/protos/actions/build_farm_action.proto";
+import "common/protos/actions/build_quarry_action.proto";
+
+message AgentAction {
+    int32 agent_id = 1;
+    oneof action {
+        MoveAction move_action = 2;
+        FarmAction farm_action = 3;
+        PickUpAction pick_up_action = 4;
+        DropAction drop_action = 5;
+        MineAction mine_action = 6;
+        BuildHouseAction build_house_action = 7;
+        BuildFarmAction build_farm_action = 8;
+        BuildQuarryAction build_quarry_action = 9;
+    }
+}
+
+message AgentActionRequest {
+    repeated AgentAction actions = 1;
+}

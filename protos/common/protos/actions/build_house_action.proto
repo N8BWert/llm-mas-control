@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+import "common/protos/tile.proto";
+
+message BuildHouseAction {
+    Tile build_house_tile = 1;
+}
