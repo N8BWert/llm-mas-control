@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+message Rect {
+    double x_min = 1;
+    double y_min = 2;
+    double x_max = 3;
+    double y_max = 4;
+}
+
+message Circle {
+    double x = 1;
+    double y = 2;
+    double radius = 3;
+}
+
+message Zone {
+    oneof shape {
+        Rect rect = 1;
+        Circle circle = 2;
+    }
+}
+
+// Robots may not enter any of the zones.
+message RestrictedZone {
+    repeated Zone zones = 1;
+}
+
+// Each zone must always contain at least min_robots friendly robots.
+// Violations are not counted for the first grace_s seconds after activation.
+message OccupationZone {
+    repeated Zone zones = 1;
+    uint32 min_robots = 2;
+    double grace_s = 3;
+}
+
+// Each robot may stay inside the zones for at most max_dwell_s at a time.
+message TimedEntryZone {
+    repeated Zone zones = 1;
+    double max_dwell_s = 2;
+}
+
+// Each robot may be away from base_zone for at most max_active_s before
+// returning to refuel.
+message ActivityInterval {
+    double max_active_s = 1;
+    Zone base_zone = 2;
+}
+
+// Only robots with one of allowed_roles may perform the listed actions.
+message RoleRestriction {
+    repeated string action_kinds = 1;
+    repeated string allowed_roles = 2;
+}
+
+message Constraint {
+    string id = 1;
+    string label = 2;
+    string description = 3;
+    string difficulty = 4;
+    int32 penalty = 5;
+    double active_from_s = 6;
+    // 0 means active until the end of the round
+    double active_until_s = 7;
+    oneof kind {
+        RestrictedZone restricted_zone = 10;
+        OccupationZone occupation_zone = 11;
+        TimedEntryZone timed_entry_zone = 12;
+        ActivityInterval activity_interval = 13;
+        RoleRestriction role_restriction = 14;
+    }
+}
+
+enum ConstraintState {
+    CONSTRAINT_OK = 0;
+    CONSTRAINT_WARNING = 1;
+    CONSTRAINT_VIOLATED = 2;
+}
+
+message ConstraintStatus {
+    string constraint_id = 1;
+    ConstraintState state = 2;
+    repeated int32 offending_robot_ids = 3;
+    // Seconds remaining per robot id (e.g. dwell or activity time left)
+    map<int32, double> timers = 4;
+    uint32 violation_count = 5;
+    int32 points_lost = 6;
+    // Number of robots inside each zone, in zone order
+    repeated uint32 zone_counts = 7;
+}

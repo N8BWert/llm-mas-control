@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "common/protos/position.proto";
+
+// A non-player map element such as an enemy or an objective marker.
+message Entity {
+    int32 id = 1;
+    string kind = 2;
+    Position position = 3;
+    string label = 4;
+}

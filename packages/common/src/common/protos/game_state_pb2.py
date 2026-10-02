@@ -24,15 +24,17 @@ _sym_db = _symbol_database.Default()
 
 from common.protos import agent_state_pb2 as common_dot_protos_dot_agent__state__pb2
 from common.protos import tile_pb2 as common_dot_protos_dot_tile__pb2
+from common.protos import entity_pb2 as common_dot_protos_dot_entity__pb2
+from common.protos import constraint_pb2 as common_dot_protos_dot_constraint__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63ommon/protos/game_state.proto\x1a\x1f\x63ommon/protos/agent_state.proto\x1a\x18\x63ommon/protos/tile.proto\"x\n\tGameState\x12\x0e\n\x06points\x18\x01 \x01(\x05\x12!\n\x0c\x61gent_states\x18\x02 \x03(\x0b\x32\x0b.AgentState\x12\x19\n\x05tiles\x18\x03 \x03(\x0e\x32\n.TileState\x12\r\n\x05width\x18\x04 \x01(\r\x12\x0e\n\x06height\x18\x05 \x01(\rb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63ommon/protos/game_state.proto\x1a\x1f\x63ommon/protos/agent_state.proto\x1a\x18\x63ommon/protos/tile.proto\x1a\x1a\x63ommon/protos/entity.proto\x1a\x1e\x63ommon/protos/constraint.proto\"\x9a\x03\n\tGameState\x12\x0e\n\x06points\x18\x01 \x01(\x05\x12!\n\x0c\x61gent_states\x18\x02 \x03(\x0b\x32\x0b.AgentState\x12\x19\n\x05tiles\x18\x03 \x03(\x0e\x32\n.TileState\x12\r\n\x05width\x18\x04 \x01(\r\x12\x0e\n\x06height\x18\x05 \x01(\r\x12\x16\n\x0etime_remaining\x18\x06 \x01(\x01\x12\x11\n\telapsed_s\x18\x07 \x01(\x01\x12\x13\n\x0bround_index\x18\x08 \x01(\r\x12\x13\n\x0bround_count\x18\t \x01(\r\x12\x12\n\nround_name\x18\n \x01(\t\x12\x11\n\tgame_over\x18\x0b \x01(\x08\x12\x14\n\x05\x61rena\x18\x0c \x01(\x0b\x32\x05.Rect\x12\x18\n\x07\x65nemies\x18\r \x03(\x0b\x32\x07.Entity\x12\x1b\n\nobjectives\x18\x0e \x03(\x0b\x32\x07.Entity\x12\'\n\x12\x61\x63tive_constraints\x18\x0f \x03(\x0b\x32\x0b.Constraint\x12.\n\x13\x63onstraint_statuses\x18\x10 \x03(\x0b\x32\x11.ConstraintStatusb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'common.protos.game_state_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_GAMESTATE']._serialized_start=93
-  _globals['_GAMESTATE']._serialized_end=213
+  _globals['_GAMESTATE']._serialized_start=154
+  _globals['_GAMESTATE']._serialized_end=564
 # @@protoc_insertion_point(module_scope)

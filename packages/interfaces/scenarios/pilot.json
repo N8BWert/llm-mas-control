@@ -1,0 +1,76 @@
+{
+  "name": "pilot",
+  "description": "Three rounds: warm-up with no constraint, then easy, then medium (one random timed-entry constraint).",
+  "seed": 7,
+  "n_robots": 6,
+  "robot_speed": 0.15,
+  "roles": ["worker", "worker", "builder", "scout"],
+  "arena": [-1.6, -1.0, 1.6, 1.0],
+  "grid": [32, 20],
+  "home": [-1.25, 0.05],
+  "tiles": [
+    { "state": "CASTLE", "x": 3, "y": 10 },
+    { "state": "QUARRY", "x": 26, "y": 15, "w": 2, "h": 2 },
+    { "state": "QUARRY", "x": 24, "y": 3 },
+    { "state": "FARM", "x": 14, "y": 3, "w": 2, "h": 1 },
+    { "state": "WATER", "x": 10, "y": 12, "w": 2, "h": 5 },
+    { "state": "APPLE", "x": 22, "y": 8 },
+    { "state": "APPLE", "x": 7, "y": 16 },
+    { "state": "APPLE", "x": 18, "y": 13 }
+  ],
+  "enemies": [
+    { "id": 1, "label": "Patrol", "path": [[0.45, -0.75], [0.45, 0.75]], "speed": 0.05, "radius": 0.2 }
+  ],
+  "objectives": [
+    { "id": 1, "label": "Supply drop", "position": [0.9, -0.6] }
+  ],
+  "action_durations": {
+    "mine": 5, "farm": 4, "pick_up": 2, "drop": 1,
+    "build_farm": 8, "build_quarry": 10, "build_house": 8
+  },
+  "action_points": { "build_house": 15 },
+  "item_points": { "stone": 10, "food": 6, "apple": 4 },
+  "rounds": [
+    { "name": "Warm-up", "duration_s": 90, "constraints": [] },
+    {
+      "name": "Easy",
+      "duration_s": 120,
+      "constraints": [
+        {
+          "kind": "restricted_zone", "id": "easy-restricted", "label": "No-go zone",
+          "difficulty": "easy", "penalty": 15,
+          "zones": [{ "rect": [0.1, -0.3, 0.5, 0.3] }]
+        },
+        {
+          "kind": "occupation_zone", "id": "easy-hold-drop", "label": "Hold the supply drop",
+          "difficulty": "easy", "penalty": 20, "active_from_s": 30, "grace_s": 15,
+          "zones": [{ "circle": [0.9, -0.6, 0.15] }]
+        }
+      ]
+    },
+    {
+      "name": "Medium",
+      "duration_s": 120,
+      "constraints": [
+        {
+          "kind": "restricted_zone", "id": "med-restricted", "label": "No-go zone",
+          "difficulty": "easy", "penalty": 15,
+          "zones": [{ "rect": [0.1, -0.4, 0.5, 0.4] }, { "circle": [-0.4, 0.6, 0.2] }]
+        }
+      ],
+      "pick": 1,
+      "random_pool": [
+        {
+          "kind": "timed_entry_zone", "id": "med-quarry-hazard", "label": "Radiation at quarry",
+          "difficulty": "medium", "penalty": 20, "max_dwell_s": 12, "active_from_s": 20,
+          "zones": [{ "rect": [0.95, 0.4, 1.25, 0.75] }]
+        },
+        {
+          "kind": "timed_entry_zone", "id": "med-farm-hazard", "label": "Toxic field",
+          "difficulty": "medium", "penalty": 20, "max_dwell_s": 10, "active_from_s": 20,
+          "zones": [{ "rect": [-0.3, -0.8, 0.1, -0.5] }]
+        }
+      ]
+    }
+  ]
+}

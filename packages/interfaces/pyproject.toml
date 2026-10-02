@@ -1,0 +1,35 @@
+[project]
+name = "interfaces"
+version = "0.1.0"
+description = "Web UIs (RTS and LLM) for commanding the robot swarm"
+readme = "README.md"
+authors = [
+    { name = "N8BWert", email = "n8.wert.b@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "common",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic-settings>=2.4",
+    "litellm>=1.50",
+    "numpy>=2.2.6",
+    "protobuf>=7.36.2",
+]
+
+[project.scripts]
+interfaces = "interfaces:main"
+dummy-engine = "interfaces.sim.dummy_engine:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "httpx2>=2.13.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
