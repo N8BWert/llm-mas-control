@@ -6,4 +6,20 @@ message AgentState {
     int32 id = 1;
     Position position = 2;
     bool busy = 3;
+    string role = 4;
+    // 0.0 (destroyed) to 1.0 (full health)
+    double health = 5;
+    // Action kind currently being executed ("" when idle), e.g. "move", "mine"
+    string current_action = 6;
+    // Seconds left on the timed part of the current action
+    double action_time_remaining = 7;
+    // Total seconds of the timed part of the current action
+    double action_duration = 8;
+    // Where the current action takes the robot
+    Position target = 9;
+    bool has_target = 10;
+    // Critical failure description ("" when healthy), e.g. "disabled"
+    string failure = 11;
+    // Item being carried ("" when empty)
+    string carrying = 12;
 }

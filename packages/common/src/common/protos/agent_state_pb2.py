@@ -25,13 +25,13 @@ _sym_db = _symbol_database.Default()
 from common.protos import position_pb2 as common_dot_protos_dot_position__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ommon/protos/agent_state.proto\x1a\x1c\x63ommon/protos/position.proto\"C\n\nAgentState\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x08position\x18\x02 \x01(\x0b\x32\t.Position\x12\x0c\n\x04\x62usy\x18\x03 \x01(\x08\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ommon/protos/agent_state.proto\x1a\x1c\x63ommon/protos/position.proto\"\x83\x02\n\nAgentState\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x08position\x18\x02 \x01(\x0b\x32\t.Position\x12\x0c\n\x04\x62usy\x18\x03 \x01(\x08\x12\x0c\n\x04role\x18\x04 \x01(\t\x12\x0e\n\x06health\x18\x05 \x01(\x01\x12\x16\n\x0e\x63urrent_action\x18\x06 \x01(\t\x12\x1d\n\x15\x61\x63tion_time_remaining\x18\x07 \x01(\x01\x12\x17\n\x0f\x61\x63tion_duration\x18\x08 \x01(\x01\x12\x19\n\x06target\x18\t \x01(\x0b\x32\t.Position\x12\x12\n\nhas_target\x18\n \x01(\x08\x12\x0f\n\x07\x66\x61ilure\x18\x0b \x01(\t\x12\x10\n\x08\x63\x61rrying\x18\x0c \x01(\tb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'common.protos.agent_state_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_AGENTSTATE']._serialized_start=65
-  _globals['_AGENTSTATE']._serialized_end=132
+  _globals['_AGENTSTATE']._serialized_start=66
+  _globals['_AGENTSTATE']._serialized_end=325
 # @@protoc_insertion_point(module_scope)

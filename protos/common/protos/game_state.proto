@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "common/protos/agent_state.proto";
 import "common/protos/tile.proto";
+import "common/protos/entity.proto";
+import "common/protos/constraint.proto";
 
 message GameState {
     int32 points = 1;
@@ -9,4 +11,16 @@ message GameState {
     repeated TileState tiles = 3;
     uint32 width = 4;
     uint32 height = 5;
+    double time_remaining = 6;
+    double elapsed_s = 7;
+    uint32 round_index = 8;
+    uint32 round_count = 9;
+    string round_name = 10;
+    bool game_over = 11;
+    // Arena bounds in world coordinates; the tile grid spans this rectangle
+    Rect arena = 12;
+    repeated Entity enemies = 13;
+    repeated Entity objectives = 14;
+    repeated Constraint active_constraints = 15;
+    repeated ConstraintStatus constraint_statuses = 16;
 }
