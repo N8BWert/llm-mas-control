@@ -4,27 +4,25 @@ vice versa is working
 """
 
 import unittest
-import numpy as np
 
-from common.position import Position
-import common.protos.position_pb2 as position_pb2
-from common.tile import Tile
-import common.protos.tile_pb2 as tile_pb2
-from common.agent_state import AgentState
-import common.protos.agent_state_pb2 as agent_state_pb2
-from common.game_state import GameState
-import common.protos.game_state_pb2 as game_state_pb2
-from common.agent_action import AgentAction, AgentActionRequest
 import common.protos.agent_action_pb2 as agent_action_pb2
-
+import common.protos.agent_state_pb2 as agent_state_pb2
+import common.protos.game_state_pb2 as game_state_pb2
+import common.protos.position_pb2 as position_pb2
+import common.protos.tile_pb2 as tile_pb2
+import numpy as np
 from common.actions.build_farm_action import BuildFarmAction
 from common.actions.build_house_action import BuildHouseAction
 from common.actions.build_quarry_action import BuildQuarryAction
 from common.actions.drop_action import DropAction
-from common.actions.mine_action import MineAction
 from common.actions.farm_action import FarmAction
-from common.actions.pick_up_action import PickUpAction
+from common.actions.mine_action import MineAction
 from common.actions.move_action import MoveAction
+from common.actions.pick_up_action import PickUpAction
+from common.agent_action import AgentAction, AgentActionRequest
+from common.agent_state import AgentState
+from common.game_state import GameState
+from common.position import Position
 from common.protos.actions import (
     build_farm_action_pb2,
     build_house_action_pb2,
@@ -33,8 +31,9 @@ from common.protos.actions import (
     farm_action_pb2,
     mine_action_pb2,
     move_action_pb2,
-    pick_up_action_pb2
+    pick_up_action_pb2,
 )
+from common.tile import Tile
 
 
 class TestProtoConversions(unittest.TestCase):
@@ -247,7 +246,7 @@ class TestProtoConversions(unittest.TestCase):
 
     def test_agent_action_to_proto_unknown_action(self):
         agent_action = AgentAction(agent_id=1, action=None)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             agent_action.to_proto()
 
     def test_proto_to_agent_action(self):

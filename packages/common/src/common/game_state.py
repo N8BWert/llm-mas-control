@@ -3,12 +3,13 @@ Game State representation converted to and from the protobuf for
 ease of use.
 """
 
-import numpy as np
 from typing import Optional
 
-from common.convertible import Convertible
-from common.agent_state import AgentState
+import numpy as np
+
 import common.protos.game_state_pb2 as game_state_pb2
+from common.agent_state import AgentState
+from common.convertible import Convertible
 
 
 class GameState(Convertible):

@@ -2,12 +2,12 @@
 Tests for the socket publisher and subscriber
 """
 
-import unittest
 import time
+import unittest
 
+from common.position import Position
 from common.publishers.socket_publisher import SocketPublisher
 from common.subscribers.socket_subscriber import SocketSubscriber
-from common.position import Position
 
 
 class testSocketPublisherAndSubscriber(unittest.TestCase):

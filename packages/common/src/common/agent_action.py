@@ -3,10 +3,9 @@ Representation of an action taken by an agent (decoded
 from a protobuf into a algebraic type for ease of use)
 """
 
-from typing import Union
 from dataclasses import dataclass
 
-from common.convertible import Convertible
+import common.protos.agent_action_pb2 as agent_action_pb2
 from common.actions.build_farm_action import BuildFarmAction
 from common.actions.build_house_action import BuildHouseAction
 from common.actions.build_quarry_action import BuildQuarryAction
@@ -15,26 +14,24 @@ from common.actions.farm_action import FarmAction
 from common.actions.mine_action import MineAction
 from common.actions.move_action import MoveAction
 from common.actions.pick_up_action import PickUpAction
-import common.protos.agent_action_pb2 as agent_action_pb2
+from common.convertible import Convertible
 
 
 @dataclass
 class AgentAction(Convertible):
     agent_id: int
-    action: Union[
-        BuildFarmAction,
-        BuildHouseAction,
-        BuildQuarryAction,
-        DropAction,
-        FarmAction,
-        MineAction,
-        MoveAction,
-        PickUpAction
-    ]
+    action: BuildFarmAction | \
+    BuildHouseAction | \
+    BuildQuarryAction | \
+    DropAction | \
+    FarmAction | \
+    MineAction | \
+    MoveAction | \
+    PickUpAction
 
     def to_proto(self) -> agent_action_pb2.AgentAction:
         if not isinstance(self.action, Convertible):
-            raise ValueError("Invalid proto type")
+            raise TypeError("Invalid proto type")
         action_proto = self.action.to_proto()
         match self.action:
             case BuildFarmAction(_):

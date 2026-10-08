@@ -1,0 +1,2 @@
+[language-server.jedi]
+config.workspace.environmentPath = ".venv"

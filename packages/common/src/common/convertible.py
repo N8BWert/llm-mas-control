@@ -4,6 +4,7 @@ representations of the object.
 """
 
 from abc import ABC, abstractmethod
+
 from google.protobuf.message import Message
 
 

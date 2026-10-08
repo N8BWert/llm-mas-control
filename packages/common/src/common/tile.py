@@ -2,10 +2,11 @@
 Tile type used to represent a single tile in the environment.
 """
 
+from dataclasses import dataclass
 from enum import IntEnum
 
-from common.convertible import Convertible
 import common.protos.tile_pb2 as tile_pb2
+from common.convertible import Convertible
 
 
 class TileState(IntEnum):
@@ -20,17 +21,14 @@ class TileState(IntEnum):
     APPLE = 5
     OBSCURED = 6
 
+
+@dataclass
 class Tile(Convertible):
     """
     Represents a single tile in the environment.
-
-    Attributes:
-        position (np.ndarray): The (x, y) position of the tile.
     """
-
-    def __init__(self, x: int, y: int):
-        self.x = x
-        self.y = y
+    x: int
+    y: int
 
     def to_proto(self) -> tile_pb2.Tile:
         return tile_pb2.Tile(

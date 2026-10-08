@@ -4,9 +4,9 @@ Python representation of the build quarry action.
 
 from dataclasses import dataclass
 
-from common.tile import Tile
-from common.convertible import Convertible
 import common.protos.actions.build_quarry_action_pb2 as build_quarry_action_pb2
+from common.convertible import Convertible
+from common.tile import Tile
 
 
 @dataclass

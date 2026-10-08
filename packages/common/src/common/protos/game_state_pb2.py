@@ -9,6 +9,7 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     7,
@@ -24,7 +25,6 @@ _sym_db = _symbol_database.Default()
 
 from common.protos import agent_state_pb2 as common_dot_protos_dot_agent__state__pb2
 from common.protos import tile_pb2 as common_dot_protos_dot_tile__pb2
-
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63ommon/protos/game_state.proto\x1a\x1f\x63ommon/protos/agent_state.proto\x1a\x18\x63ommon/protos/tile.proto\"x\n\tGameState\x12\x0e\n\x06points\x18\x01 \x01(\x05\x12!\n\x0c\x61gent_states\x18\x02 \x03(\x0b\x32\x0b.AgentState\x12\x19\n\x05tiles\x18\x03 \x03(\x0e\x32\n.TileState\x12\r\n\x05width\x18\x04 \x01(\r\x12\x0e\n\x06height\x18\x05 \x01(\rb\x06proto3')
 

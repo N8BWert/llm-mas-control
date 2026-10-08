@@ -17,3 +17,6 @@ clean:
 
 test target:
     PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --package {{target}} pytest
+
+format:
+    uvx ruff check --select I --fix

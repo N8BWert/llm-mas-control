@@ -5,9 +5,9 @@ buffer that's held by the local publisher.
 
 from typing import Optional, Type
 
-from common.subscriber import Subscriber
 from common.convertible import Convertible
 from common.publishers.local_publisher import LocalPublisher
+from common.subscriber import Subscriber
 
 
 class LocalSubscriber(Subscriber):

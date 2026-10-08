@@ -9,6 +9,7 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     7,
@@ -23,7 +24,6 @@ _sym_db = _symbol_database.Default()
 
 
 from common.protos import position_pb2 as common_dot_protos_dot_position__pb2
-
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'common/protos/actions/move_action.proto\x1a\x1c\x63ommon/protos/position.proto\".\n\nMoveAction\x12 \n\rgoal_position\x18\x01 \x01(\x0b\x32\t.Positionb\x06proto3')
 

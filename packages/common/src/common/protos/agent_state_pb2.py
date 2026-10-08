@@ -9,6 +9,7 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     7,
@@ -23,7 +24,6 @@ _sym_db = _symbol_database.Default()
 
 
 from common.protos import position_pb2 as common_dot_protos_dot_position__pb2
-
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ommon/protos/agent_state.proto\x1a\x1c\x63ommon/protos/position.proto\"C\n\nAgentState\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x08position\x18\x02 \x01(\x0b\x32\t.Position\x12\x0c\n\x04\x62usy\x18\x03 \x01(\x08\x62\x06proto3')
 

@@ -3,13 +3,13 @@ Socket implementation for subscribing to data over a
 python network socket
 """
 
-import struct
 import socket
+import struct
 import threading
 from typing import Optional, Type
 
-from common.subscriber import Subscriber
 from common.convertible import Convertible
+from common.subscriber import Subscriber
 
 
 class SocketSubscriber(Subscriber):

@@ -3,11 +3,11 @@ The socket publisher implements the publisher interface and sends
 data over a network socket.
 """
 
-import struct
 import socket
+import struct
 
-from common.publisher import Publisher
 from common.convertible import Convertible
+from common.publisher import Publisher
 
 
 class SocketPublisher(Publisher):

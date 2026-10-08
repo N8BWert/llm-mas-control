@@ -4,12 +4,7 @@ These inputs are then translated into agent actions, which are relayed from the 
 system to the physics and gameplay engines.
 """
 
-import struct
-import socket
-import threading
-from typing import Optional
-
-from common.agent_action import AgentActionRequest, AgentAction
+from common.agent_action import AgentAction, AgentActionRequest
 from common.subscriber import Subscriber
 
 
@@ -22,9 +17,9 @@ class InputSystem:
 
     def __init__(self, subscriber: Subscriber, num_robots: int = 10):
         self.subscriber = subscriber
-        self.agent_actions: list[Optional[AgentAction]] = [None] * num_robots
+        self.agent_actions: list[AgentAction | None] = [None] * num_robots
 
-    def get_agent_actions(self) -> list[AgentAction]:
+    def get_agent_actions(self) -> list[AgentAction | None]:
         """
         Retrieve the current actions for all agents.
 
@@ -35,6 +30,23 @@ class InputSystem:
         if data is not None:
             for action in data.agent_actions:
                 if 0 <= action.agent_id < len(self.agent_actions):
-                    pass
+                    self.agent_actions[action.agent_id] = action
+                else:
+                    while len(self.agent_actions) < action.agent_id - 1:
+                        self.agent_actions.append(None)
+                    self.agent_actions.append(action)
+                
             
         return self.agent_actions
+
+    def clear_agent_actions(self, ids: list[int]):
+        """
+        Clear the current agent actions for the given agents
+
+        Args:
+            ids (list[int]): The id of each agent to clear the
+                action of 
+        """
+        for id in ids:
+            self.agent_actions[id] = None
+

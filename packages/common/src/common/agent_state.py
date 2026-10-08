@@ -4,8 +4,9 @@ Represents the state of an agent, relayed by the game engine to the UIs
 
 import numpy as np
 
-from common.convertible import Convertible
 import common.protos.agent_state_pb2 as agent_state_pb2
+from common.convertible import Convertible
+
 
 class AgentState(Convertible):
     def __init__(self, id: int, position: np.typing.NDArray[np.float64], busy: bool):

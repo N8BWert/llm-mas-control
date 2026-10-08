@@ -4,9 +4,9 @@ Python representation of the farm action.
 
 from dataclasses import dataclass
 
-from common.tile import Tile
-from common.convertible import Convertible
 import common.protos.actions.farm_action_pb2 as farm_action_pb2
+from common.convertible import Convertible
+from common.tile import Tile
 
 
 @dataclass

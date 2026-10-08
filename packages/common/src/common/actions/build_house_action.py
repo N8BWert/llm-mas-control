@@ -4,9 +4,9 @@ Python representation of the build house action.
 
 from dataclasses import dataclass
 
-from common.tile import Tile
-from common.convertible import Convertible
 import common.protos.actions.build_house_action_pb2 as build_house_action_pb2
+from common.convertible import Convertible
+from common.tile import Tile
 
 
 @dataclass
