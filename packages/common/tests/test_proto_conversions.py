@@ -4,27 +4,25 @@ vice versa is working
 """
 
 import unittest
-import numpy as np
 
-from common.position import Position
-import common.protos.position_pb2 as position_pb2
-from common.tile import Tile
-import common.protos.tile_pb2 as tile_pb2
-from common.agent_state import AgentState
-import common.protos.agent_state_pb2 as agent_state_pb2
-from common.game_state import GameState
-import common.protos.game_state_pb2 as game_state_pb2
-from common.agent_action import AgentAction, AgentActionRequest
 import common.protos.agent_action_pb2 as agent_action_pb2
-
+import common.protos.agent_state_pb2 as agent_state_pb2
+import common.protos.game_state_pb2 as game_state_pb2
+import common.protos.position_pb2 as position_pb2
+import common.protos.tile_pb2 as tile_pb2
+import numpy as np
 from common.actions.build_farm_action import BuildFarmAction
 from common.actions.build_house_action import BuildHouseAction
 from common.actions.build_quarry_action import BuildQuarryAction
 from common.actions.drop_action import DropAction
-from common.actions.mine_action import MineAction
 from common.actions.farm_action import FarmAction
-from common.actions.pick_up_action import PickUpAction
+from common.actions.mine_action import MineAction
 from common.actions.move_action import MoveAction
+from common.actions.pick_up_action import PickUpAction
+from common.agent_action import AgentAction, AgentActionRequest
+from common.agent_state import AgentState
+from common.game_state import GameState
+from common.position import Position
 from common.protos.actions import (
     build_farm_action_pb2,
     build_house_action_pb2,
@@ -33,8 +31,9 @@ from common.protos.actions import (
     farm_action_pb2,
     mine_action_pb2,
     move_action_pb2,
-    pick_up_action_pb2
+    pick_up_action_pb2,
 )
+from common.tile import Tile, TileOverlay, TileState, TileType
 
 
 class TestProtoConversions(unittest.TestCase):
@@ -63,12 +62,13 @@ class TestProtoConversions(unittest.TestCase):
         self.assertEqual(tile.y, 2)
 
     def test_agent_state_to_proto(self):
-        agent_state = AgentState(id=1, position=np.array([1.0, 2.0], dtype=np.float64), busy=False)
+        agent_state = AgentState(id=1, position=np.array([1.0, 2.0], dtype=np.float64), busy=False, carrying_apple=True)
         proto = agent_state.to_proto()
         self.assertEqual(proto.id, 1)
         self.assertEqual(proto.position.x, 1.0)
         self.assertEqual(proto.position.y, 2.0)
         self.assertEqual(proto.busy, False)
+        self.assertEqual(proto.carrying_apple, True)
 
     def test_agent_state_from_proto(self):
         proto = agent_state_pb2.AgentState(id=1, position=position_pb2.Position(x=1.0, y=2.0), busy=False)
@@ -76,14 +76,32 @@ class TestProtoConversions(unittest.TestCase):
         self.assertEqual(agent_state.id, 1)
         self.assertTrue(np.array_equal(agent_state.position, np.array([1.0, 2.0], dtype=np.float64)))
         self.assertEqual(agent_state.busy, False)
+        self.assertEqual(agent_state.carrying_apple, False)
+
+    def test_tiles_state_to_proto(self):
+        tile_state = TileState(TileType.FARM, TileOverlay.APPLE)
+        proto = tile_state.to_proto()
+        self.assertEqual(proto.tile_type, TileType.FARM)
+        self.assertEqual(proto.tile_overlay, TileOverlay.APPLE)
+
+    def test_tile_state_from_proto(self):
+        proto = tile_pb2.TileState(tile_type=TileType.FARM, tile_overlay=TileOverlay.APPLE)
+        tile_state = TileState.from_proto(proto)
+        self.assertEqual(tile_state.tile_type, TileType.FARM)
+        self.assertEqual(tile_state.tile_overlay, TileOverlay.APPLE)
 
     def test_game_state_to_proto(self):
         game_state = GameState(
             agent_states = [
-                AgentState(id=1, position=np.array([1.0, 2.0], dtype=np.float64), busy=False),
-                AgentState(id=2, position=np.array([3.0, 4.0], dtype=np.float64), busy=False)
+                AgentState(id=1, position=np.array([1.0, 2.0], dtype=np.float64), busy=False, carrying_apple=True),
+                AgentState(id=2, position=np.array([3.0, 4.0], dtype=np.float64), busy=False, carrying_apple=False)
             ],
-            tile_states = np.array([[0, 1], [2, 3]], dtype=np.uint8),
+            tile_states = [
+                TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.NONE),
+                TileState(tile_type=TileType.CASTLE, tile_overlay=TileOverlay.NONE),
+                TileState(tile_type=TileType.FARM, tile_overlay=TileOverlay.APPLE),
+                TileState(tile_type=TileType.QUARRY, tile_overlay=TileOverlay.BIRD)
+            ],
             width = 2,
             height = 2,
             points = 10,
@@ -96,10 +114,20 @@ class TestProtoConversions(unittest.TestCase):
         self.assertEqual(proto.agent_states[0].id, 1)
         self.assertEqual(proto.agent_states[0].position.x, 1.0)
         self.assertEqual(proto.agent_states[0].position.y, 2.0)
+        self.assertEqual(proto.agent_states[0].carrying_apple, True)
         self.assertEqual(proto.agent_states[1].id, 2)
         self.assertEqual(proto.agent_states[1].position.x, 3.0)
         self.assertEqual(proto.agent_states[1].position.y, 4.0)
-        self.assertEqual(list(proto.tiles), [0, 1, 2, 3])
+        self.assertEqual(proto.agent_states[1].carrying_apple, False)
+        self.assertEqual(len(proto.tiles), 4)
+        self.assertEqual(proto.tiles[0].tile_type, tile_pb2.TileType.EMPTY)
+        self.assertEqual(proto.tiles[1].tile_type, tile_pb2.TileType.CASTLE)
+        self.assertEqual(proto.tiles[2].tile_type, tile_pb2.TileType.FARM)
+        self.assertEqual(proto.tiles[3].tile_type, tile_pb2.TileType.QUARRY)
+        self.assertEqual(proto.tiles[0].tile_overlay, tile_pb2.TileOverlay.NONE)
+        self.assertEqual(proto.tiles[1].tile_overlay, tile_pb2.TileOverlay.NONE)
+        self.assertEqual(proto.tiles[2].tile_overlay, tile_pb2.TileOverlay.APPLE)
+        self.assertEqual(proto.tiles[3].tile_overlay, tile_pb2.TileOverlay.BIRD)
 
     def test_proto_to_game_state(self):
         proto = game_state_pb2.GameState()
@@ -108,7 +136,10 @@ class TestProtoConversions(unittest.TestCase):
         proto.height = 2
         proto.agent_states.add(id=1, position=position_pb2.Position(x=1.0, y=2.0), busy=False)
         proto.agent_states.add(id=2, position=position_pb2.Position(x=3.0, y=4.0), busy=False)
-        proto.tiles.extend([tile_pb2.TileState.EMPTY, tile_pb2.TileState.CASTLE, tile_pb2.TileState.FARM, tile_pb2.TileState.QUARRY])
+        proto.tiles.add(tile_type=tile_pb2.TileType.EMPTY, tile_overlay=tile_pb2.TileOverlay.NONE)
+        proto.tiles.add(tile_type=tile_pb2.TileType.CASTLE, tile_overlay=tile_pb2.TileOverlay.NONE)
+        proto.tiles.add(tile_type=tile_pb2.TileType.FARM, tile_overlay=tile_pb2.TileOverlay.APPLE)
+        proto.tiles.add(tile_type=tile_pb2.TileType.QUARRY, tile_overlay=tile_pb2.TileOverlay.BIRD)
         game_state = GameState.from_proto(proto)
         self.assertEqual(game_state.points, 10)
         self.assertEqual(game_state.width, 2)
@@ -116,7 +147,15 @@ class TestProtoConversions(unittest.TestCase):
         self.assertEqual(len(game_state.agent_states), 2)
         self.assertTrue(np.array_equal(game_state.agent_states[0].position, np.array([1.0, 2.0], dtype=np.float64)))
         self.assertTrue(np.array_equal(game_state.agent_states[1].position, np.array([3.0, 4.0] , dtype=np.float64)))
-        self.assertTrue(np.array_equal(game_state.tile_states, np.array([[0, 1], [2, 3]], dtype=np.uint8)))
+        self.assertEqual(len(game_state.tile_states), 4)
+        self.assertEqual(game_state.tile_states[0].tile_type, TileType.EMPTY)
+        self.assertEqual(game_state.tile_states[1].tile_type, TileType.CASTLE)
+        self.assertEqual(game_state.tile_states[2].tile_type, TileType.FARM)
+        self.assertEqual(game_state.tile_states[3].tile_type, TileType.QUARRY)
+        self.assertEqual(game_state.tile_states[0].tile_overlay, TileOverlay.NONE)
+        self.assertEqual(game_state.tile_states[1].tile_overlay, TileOverlay.NONE)
+        self.assertEqual(game_state.tile_states[2].tile_overlay, TileOverlay.APPLE)
+        self.assertEqual(game_state.tile_states[3].tile_overlay, TileOverlay.BIRD)
 
     def test_build_farm_action_to_proto(self):
         tile = Tile(x=1, y=2)
@@ -247,7 +286,7 @@ class TestProtoConversions(unittest.TestCase):
 
     def test_agent_action_to_proto_unknown_action(self):
         agent_action = AgentAction(agent_id=1, action=None)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             agent_action.to_proto()
 
     def test_proto_to_agent_action(self):

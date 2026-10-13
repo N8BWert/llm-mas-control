@@ -4,8 +4,8 @@ that has no real network communication and simply stores
 published data for the subscribers
 """
 
-from common.publisher import Publisher
 from common.convertible import Convertible
+from common.publisher import Publisher
 
 
 class LocalPublisher(Publisher):

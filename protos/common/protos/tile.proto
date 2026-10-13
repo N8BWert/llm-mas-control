@@ -5,12 +5,23 @@ message Tile {
     int32 y = 2;
 }
 
-enum TileState {
+enum TileType {
     EMPTY = 0;
     CASTLE = 1;
-    FARM = 2;
-    QUARRY = 3;
-    WATER = 4;
-    APPLE = 5;
+    HOUSE = 2;
+    FARM = 3;
+    QUARRY = 4;
+    WATER = 5;
     OBSCURED = 6;
+}
+
+enum TileOverlay {
+    NONE = 0;
+    APPLE = 1;
+    BIRD = 2;
+}
+
+message TileState {
+    TileType tile_type = 1;
+    TileOverlay tile_overlay = 2;
 }

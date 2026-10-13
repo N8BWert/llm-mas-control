@@ -4,9 +4,9 @@ Tests for the local publisher and subscriber
 
 import unittest
 
+from common.position import Position
 from common.publishers.local_publisher import LocalPublisher
 from common.subscribers.local_subscriber import LocalSubscriber
-from common.position import Position
 
 
 class TestLocalPublisherAndSubscriber(unittest.TestCase):

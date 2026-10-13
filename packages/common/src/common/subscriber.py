@@ -7,8 +7,8 @@ can work with local operations for testing because I don't
 want to manage a ton of sockets.
 """
 
-from typing import Optional, Type
 from abc import ABC, abstractmethod
+from typing import Optional, Type
 
 from common.convertible import Convertible
 

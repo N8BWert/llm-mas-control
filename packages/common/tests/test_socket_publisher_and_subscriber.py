@@ -2,12 +2,12 @@
 Tests for the socket publisher and subscriber
 """
 
-import unittest
 import time
+import unittest
 
+from common.position import Position
 from common.publishers.socket_publisher import SocketPublisher
 from common.subscribers.socket_subscriber import SocketSubscriber
-from common.position import Position
 
 
 class testSocketPublisherAndSubscriber(unittest.TestCase):
@@ -19,6 +19,7 @@ class testSocketPublisherAndSubscriber(unittest.TestCase):
         self.subscriber.stop()
 
     def test_publish_subscribe(self):
+        time.sleep(0.1)
         self.publisher.send(Position(0, 0))
         time.sleep(0.1)
         self.assertEqual(self.subscriber.receive(), Position(0, 0))

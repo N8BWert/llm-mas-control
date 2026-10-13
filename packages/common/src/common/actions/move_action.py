@@ -2,21 +2,30 @@
 Python representation of the move action.
 """
 
-import numpy as np
 from dataclasses import dataclass
+from typing import ClassVar
 
-from common.position import Position
-from common.convertible import Convertible
+import numpy as np
+
 import common.protos.actions.move_action_pb2 as move_action_pb2
+from common.actions.action import Action
+from common.convertible import Convertible
+from common.position import Position
 
 
 @dataclass
-class MoveAction(Convertible):
+class MoveAction(Action, Convertible):
     """
     Action to move to a given position.
     """
+    # The tolerance for determining if the agent has reached the goal position.
+    TOLERANCE: ClassVar[float] = 0.01
 
     position: np.typing.NDArray[np.float64]
+
+
+    def time_left(self, current_tick: int) -> int:
+        return 0
 
     def to_proto(self) -> move_action_pb2.MoveAction:
         return move_action_pb2.MoveAction(
@@ -32,3 +41,8 @@ class MoveAction(Convertible):
         proto = move_action_pb2.MoveAction()
         proto.ParseFromString(data)
         return cls.from_proto(proto)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, MoveAction):
+            return False
+        return np.array_equal(self.position, other.position)

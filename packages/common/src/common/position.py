@@ -4,8 +4,8 @@ Position type used to represent coordinates in the environment.
 
 import numpy as np
 
-from common.convertible import Convertible
 import common.protos.position_pb2 as position_pb2
+from common.convertible import Convertible
 
 
 class Position(Convertible):
