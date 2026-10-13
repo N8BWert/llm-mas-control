@@ -19,6 +19,7 @@ class testSocketPublisherAndSubscriber(unittest.TestCase):
         self.subscriber.stop()
 
     def test_publish_subscribe(self):
+        time.sleep(0.1)
         self.publisher.send(Position(0, 0))
         time.sleep(0.1)
         self.assertEqual(self.subscriber.receive(), Position(0, 0))
