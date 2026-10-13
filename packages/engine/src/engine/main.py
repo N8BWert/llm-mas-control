@@ -3,14 +3,9 @@ Main entrypoint for the game engine
 """
 
 import argparse
-from common.actions.move_action import MoveAction
-from common.agent_action import AgentAction, AgentActionRequest
-from common.game_state import GameState
 import numpy as np
-from common.publishers.local_publisher import LocalPublisher
-from common.subscribers.local_subscriber import LocalSubscriber
-# from common.publishers.socket_publisher import SocketPublisher
-# from common.subscribers.socket_subscriber import SocketSubscriber
+from common.publishers.socket_publisher import SocketPublisher
+from common.subscribers.socket_subscriber import SocketSubscriber
 from rps.robotarium import Robotarium
 
 from engine.gameplay_engine import GameplayEngine
@@ -21,10 +16,8 @@ def main(
     bind_address: tuple[str, int],
     num_robots: int
 ):
-    # publisher = SocketPublisher(send_address)
-    publisher = LocalPublisher(send_address)
-    # subscriber = SocketSubscriber(bind_address)
-    subscriber = LocalSubscriber(bind_address, AgentActionRequest)
+    publisher = SocketPublisher(send_address)
+    subscriber = SocketSubscriber(bind_address)
     robotarium = Robotarium(
         number_of_robots=num_robots,
         show_figure=True,
@@ -38,19 +31,8 @@ def main(
         castle_tile = (1, 1),
         tiles = (8, 4)
     )
-    test_publisher = LocalPublisher(bind_address)
-    test_subscriber = LocalSubscriber(send_address, GameState)
     while True:
-        test_publisher.send(AgentActionRequest([
-            AgentAction(1, MoveAction(np.array([-1.2, 0.0]))),
-            AgentAction(2, MoveAction(np.array([1.0, 0.0]))),
-            AgentAction(3, MoveAction(np.array([0.0, 0.5]))),
-            AgentAction(4, MoveAction(np.array([0.0, -0.5])))
-        ]))
         e.tick()
-        game_state: GameState | None = test_subscriber.receive()
-        if game_state is not None:
-            print(game_state)
 
 
 if __name__ == "__main__":
