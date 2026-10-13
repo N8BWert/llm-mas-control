@@ -129,6 +129,11 @@ class AgentAction(Convertible):
         proto.ParseFromString(data)
         return cls.from_proto(proto)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AgentAction):
+            return False
+        return self.agent_id == other.agent_id and self.action == other.action
+
 
 class AgentActionRequest(Convertible):
     def __init__(self, agent_actions: list[AgentAction]):

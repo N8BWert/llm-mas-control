@@ -9,7 +9,6 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     7,
@@ -25,15 +24,19 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x63ommon/protos/tile.proto\"\x1c\n\x04Tile\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05*\\\n\tTileState\x12\t\n\x05\x45MPTY\x10\x00\x12\n\n\x06\x43\x41STLE\x10\x01\x12\x08\n\x04\x46\x41RM\x10\x02\x12\n\n\x06QUARRY\x10\x03\x12\t\n\x05WATER\x10\x04\x12\t\n\x05\x41PPLE\x10\x05\x12\x0c\n\x08OBSCURED\x10\x06\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x63ommon/protos/tile.proto\"\x1c\n\x04Tile\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"M\n\tTileState\x12\x1c\n\ttile_type\x18\x01 \x01(\x0e\x32\t.TileType\x12\"\n\x0ctile_overlay\x18\x02 \x01(\x0e\x32\x0c.TileOverlay*[\n\x08TileType\x12\t\n\x05\x45MPTY\x10\x00\x12\n\n\x06\x43\x41STLE\x10\x01\x12\t\n\x05HOUSE\x10\x02\x12\x08\n\x04\x46\x41RM\x10\x03\x12\n\n\x06QUARRY\x10\x04\x12\t\n\x05WATER\x10\x05\x12\x0c\n\x08OBSCURED\x10\x06*,\n\x0bTileOverlay\x12\x08\n\x04NONE\x10\x00\x12\t\n\x05\x41PPLE\x10\x01\x12\x08\n\x04\x42IRD\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'common.protos.tile_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_TILESTATE']._serialized_start=58
-  _globals['_TILESTATE']._serialized_end=150
+  _globals['_TILETYPE']._serialized_start=137
+  _globals['_TILETYPE']._serialized_end=228
+  _globals['_TILEOVERLAY']._serialized_start=230
+  _globals['_TILEOVERLAY']._serialized_end=274
   _globals['_TILE']._serialized_start=28
   _globals['_TILE']._serialized_end=56
+  _globals['_TILESTATE']._serialized_start=58
+  _globals['_TILESTATE']._serialized_end=135
 # @@protoc_insertion_point(module_scope)

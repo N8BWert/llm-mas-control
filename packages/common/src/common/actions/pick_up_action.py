@@ -2,20 +2,27 @@
 Python representation of the pick up action.
 """
 
+from typing import ClassVar
 from dataclasses import dataclass
 
 import common.protos.actions.pick_up_action_pb2 as pick_up_action_pb2
 from common.convertible import Convertible
 from common.tile import Tile
+from common.actions.action import Action
 
 
 @dataclass
-class PickUpAction(Convertible):
+class PickUpAction(Action, Convertible):
     """
     Action to pick up an item at a given tile.
     """
+    # The number of ticks required to pick up an item
+    TIME_TO_PICK_UP: ClassVar[int] = 5
 
     tile: Tile
+
+    def time_left(self, current_tick: int) -> int:
+        return max(0, self.TIME_TO_PICK_UP - current_tick)
 
     def to_proto(self) -> pick_up_action_pb2.PickUpAction:
         return pick_up_action_pb2.PickUpAction(
@@ -31,3 +38,8 @@ class PickUpAction(Convertible):
         proto = pick_up_action_pb2.PickUpAction()
         proto.ParseFromString(data)
         return cls.from_proto(proto)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PickUpAction):
+            return False
+        return self.tile == other.tile

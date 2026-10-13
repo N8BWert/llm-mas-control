@@ -9,10 +9,11 @@ from common.convertible import Convertible
 
 
 class AgentState(Convertible):
-    def __init__(self, id: int, position: np.typing.NDArray[np.float64], busy: bool):
+    def __init__(self, id: int, position: np.typing.NDArray[np.float64], busy: bool, carrying_apple: bool):
         self.id = id
         self.position = position
         self.busy = busy
+        self.carrying_apple = carrying_apple
 
     def to_proto(self) -> agent_state_pb2.AgentState:
         proto = agent_state_pb2.AgentState()
@@ -20,6 +21,7 @@ class AgentState(Convertible):
         proto.position.x=self.position[0]
         proto.position.y=self.position[1]
         proto.busy = self.busy
+        proto.carrying_apple = self.carrying_apple
         return proto
 
     @classmethod
@@ -27,10 +29,14 @@ class AgentState(Convertible):
         id = proto.id
         position = np.array([proto.position.x, proto.position.y], dtype=np.float64)
         busy = proto.busy
-        return cls(id=id, position=position, busy=busy)
+        carrying_apple = proto.carrying_apple
+        return cls(id=id, position=position, busy=busy, carrying_apple=carrying_apple)
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "AgentState":
         proto = agent_state_pb2.AgentState()
         proto.ParseFromString(data)
         return cls.from_proto(proto)
+
+    def __repr__(self):
+        return f"AgentState(id={self.id}, position={self.position}, busy={self.busy}, carrying_apple={self.carrying_apple})"

@@ -14,7 +14,8 @@ dependencies = [
     "protobuf>=7.36.2",
     "pyqt5>=5.15.11",
     "robotarium_python_simulator",
-    "common"
+    "common",
+    "pillow>=12.3.0",
 ]
 
 [project.scripts]

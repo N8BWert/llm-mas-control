@@ -35,8 +35,6 @@ class InputSystem:
                     while len(self.agent_actions) < action.agent_id - 1:
                         self.agent_actions.append(None)
                     self.agent_actions.append(action)
-                
-            
         return self.agent_actions
 
     def clear_agent_actions(self, ids: list[int]):
