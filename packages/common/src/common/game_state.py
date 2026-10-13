@@ -9,8 +9,8 @@ import numpy as np
 
 import common.protos.game_state_pb2 as game_state_pb2
 from common.agent_state import AgentState
-from common.tile import TileState
 from common.convertible import Convertible
+from common.tile import TileState
 
 
 class GameState(Convertible):

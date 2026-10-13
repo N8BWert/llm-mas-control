@@ -2,15 +2,15 @@
 Python representation of the move action.
 """
 
-from typing import ClassVar
 from dataclasses import dataclass
+from typing import ClassVar
 
 import numpy as np
 
 import common.protos.actions.move_action_pb2 as move_action_pb2
+from common.actions.action import Action
 from common.convertible import Convertible
 from common.position import Position
-from common.actions.action import Action
 
 
 @dataclass

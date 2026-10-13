@@ -9,6 +9,7 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     7,
@@ -23,7 +24,6 @@ _sym_db = _symbol_database.Default()
 
 
 from common.protos import tile_pb2 as common_dot_protos_dot_tile__pb2
-
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'common/protos/actions/drop_action.proto\x1a\x18\x63ommon/protos/tile.proto\"&\n\nDropAction\x12\x18\n\tdrop_tile\x18\x01 \x01(\x0b\x32\x05.Tileb\x06proto3')
 

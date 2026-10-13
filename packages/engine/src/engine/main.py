@@ -3,6 +3,7 @@ Main entrypoint for the game engine
 """
 
 import argparse
+
 import numpy as np
 from common.publishers.socket_publisher import SocketPublisher
 from common.subscribers.socket_subscriber import SocketSubscriber

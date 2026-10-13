@@ -33,7 +33,7 @@ from common.protos.actions import (
     move_action_pb2,
     pick_up_action_pb2,
 )
-from common.tile import Tile, TileState, TileType, TileOverlay
+from common.tile import Tile, TileOverlay, TileState, TileType
 
 
 class TestProtoConversions(unittest.TestCase):

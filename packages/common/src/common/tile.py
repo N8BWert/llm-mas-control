@@ -2,9 +2,10 @@
 Tile type used to represent a single tile in the environment.
 """
 
-import numpy as np
 from dataclasses import dataclass
 from enum import IntEnum
+
+import numpy as np
 
 import common.protos.tile_pb2 as tile_pb2
 from common.convertible import Convertible

@@ -2,13 +2,13 @@
 Python representation of the build farm action.
 """
 
-from typing import ClassVar
 from dataclasses import dataclass
+from typing import ClassVar
 
 import common.protos.actions.build_farm_action_pb2 as build_farm_action_pb2
+from common.actions.action import Action
 from common.convertible import Convertible
 from common.tile import Tile
-from common.actions.action import Action
 
 
 @dataclass

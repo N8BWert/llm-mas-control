@@ -2,13 +2,13 @@
 Python representation of the pick up action.
 """
 
-from typing import ClassVar
 from dataclasses import dataclass
+from typing import ClassVar
 
 import common.protos.actions.pick_up_action_pb2 as pick_up_action_pb2
+from common.actions.action import Action
 from common.convertible import Convertible
 from common.tile import Tile
-from common.actions.action import Action
 
 
 @dataclass

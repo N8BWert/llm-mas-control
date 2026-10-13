@@ -6,9 +6,8 @@ for the player characters.
 """
 
 import os
+
 import numpy as np
-from matplotlib.axes import Axes
-from PIL import Image
 from common.agent_action import (
     AgentAction,
     BuildFarmAction,
@@ -24,13 +23,15 @@ from common.agent_state import AgentState
 from common.game_state import GameState
 from common.publisher import Publisher
 from common.subscriber import Subscriber
-from common.tile import Tile, TileState, TileType, TileOverlay
+from common.tile import Tile, TileOverlay, TileState, TileType
+from matplotlib.axes import Axes
+from PIL import Image
 from rps.robotarium import Robotarium
 from rps.utilities.barrier_certificates import create_si_barrier_certificate
 from rps.utilities.transformations import create_si_to_uni_mapping
 
-from engine.input_system import InputSystem
 from engine.controller import SingleAgentController
+from engine.input_system import InputSystem
 
 # The number of points you gain per apple
 POINTS_PER_APPLE: int = 500
