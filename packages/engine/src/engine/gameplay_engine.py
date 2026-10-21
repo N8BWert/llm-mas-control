@@ -259,18 +259,19 @@ class GameplayEngine:
         # Publish the current state of the game
         self._publish_game_state(x_si)
 
-    def _publish_game_state(self, x_si: np.ndarray):
+    def _publish_game_state(self, x: np.ndarray):
         """
         Publish the current state of the game 
 
         Args:
-            x_si (np.ndarray): The single-integrator poses of each robot
+            x_si (np.ndarray): The (x,y,theta) poses of each robot
         """
         agent_states: list[AgentState] = []
         for robot_id in range(self.agents):
             agent_states.append(AgentState(
                 robot_id,
-                x_si[:, robot_id],
+                x[:2, robot_id],
+                x[2, robot_id],
                 self.current_actions[robot_id] is not None,
                 self.agent_carrying[robot_id]
             ))

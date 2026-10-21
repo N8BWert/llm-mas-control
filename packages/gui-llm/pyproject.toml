@@ -1,0 +1,20 @@
+[project]
+name = "gui-llm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "N8BWert", email = "n8.wert.b@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "gui-common",
+    "pygame-ce>=2.5.8",
+]
+
+[project.scripts]
+gui-llm = "gui_llm:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"

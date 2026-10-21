@@ -5,6 +5,7 @@ import "common/protos/position.proto";
 message AgentState {
     int32 id = 1;
     Position position = 2;
-    bool busy = 3;
-    bool carrying_apple = 4;
+    double orientation = 3;
+    bool busy = 4;
+    bool carrying_apple = 5;
 }
