@@ -32,12 +32,12 @@ def main():
     # tile_states[2 + (8 * 0)] = TileState(tile_type=TileType.QUARRY, tile_overlay=TileOverlay.BIRD)
     # tile_states[1 + (8 * 1)] = TileState(tile_type=TileType.FARM, tile_overlay=TileOverlay.BIRD)
     # tile_states[2 + (8 * 2)] = TileState(tile_type=TileType.HOUSE, tile_overlay=TileOverlay.BIRD)
-    # tile_states[3 + (8 * 3)] = TileState(tile_type=TileType.CASTLE, tile_overlay=TileOverlay.BIRD)
+    # tile_states[3 + (8 * 3)] = TileState(tile_type=TileType.CASTLE, tile_overlay=TileOverlay.NONE)
     # tile_states[4 + (8 * 0)] = TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.APPLE)
     # tile_states[5 + (8 * 1)] = TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.APPLE)
     # tile_states[6 + (8 * 2)] = TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.APPLE)
     # tile_states[7 + (8 * 3)] = TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.APPLE)
-    # agents = [AgentState(id=i, position=np.array([-1.5 + 0.25 * i, -1.0 + 0.25 * i]), orientation=-3*np.pi/4, busy=True, carrying_apple=True) for i in range(10)]
+    # agents = [AgentState(id=i, position=np.array([-1.5 + 0.25 * i, -0.9 + 0.25 * i]), orientation=-3*np.pi/4, busy=True, carrying_apple=True) for i in range(8)]
     # start_game_state = GameState(
     #     agent_states=agents,
     #     tile_states=tile_states,

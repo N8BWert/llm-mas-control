@@ -25,7 +25,7 @@ from common.subscriber import Subscriber
 from common.tile import Tile, TileOverlay, TileType
 
 # The assets directory
-ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/"
+ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/sprites/"
 
 
 class GUI(ABC):
@@ -48,11 +48,11 @@ class GUI(ABC):
     # The width of the robotarium testbed in meters
     ROBOTARIUM_WIDTH: float = 3.2 
     PIXELS_PER_METER_WIDTH: float = GAME_WIDTH / ROBOTARIUM_WIDTH
-    ROBOT_WIDTH_PIXELS: float = 0.11 * PIXELS_PER_METER_WIDTH
+    ROBOT_WIDTH_PIXELS: float = 0.2 * PIXELS_PER_METER_WIDTH
     # The height of the robotarium testbed in meters
     ROBOTARIUM_HEIGHT: float = 2.0
     PIXELS_PER_METER_HEIGHT: float = GAME_HEIGHT / ROBOTARIUM_HEIGHT
-    ROBOT_HEIGHT_PIXELS: float = 0.11 * PIXELS_PER_METER_HEIGHT
+    ROBOT_HEIGHT_PIXELS: float = 0.2 * PIXELS_PER_METER_HEIGHT
 
     BACKGROUND_BROWN: tuple[int, int, int] = (0x6b, 0x4f, 0x09)
 
@@ -74,7 +74,6 @@ class GUI(ABC):
         # The publisher for the current agent action
         self.agent_action_publisher = agent_action_publisher
         self.agent_action_queue: list[list[AgentAction]] = [[] for _ in range(10)]
-        self.agent_action_queue[0] = [MoveAction(np.array([1.0, 1.0])), FarmAction(Tile(1, 1))]
         self.agent_pixel_positions: list[tuple[int, int]] = [(0, 0) for _ in range(10)]
 
         # Load our tiles
@@ -91,6 +90,12 @@ class GUI(ABC):
         while self.running:
             # Update the game state from the subscriber
             self.game_state = self.game_state_subscriber.receive()
+            if self.game_state is not None:
+                alive_ids = set(agent_state.id for agent_state in self.game_state.agent_states)
+                # Remove any agents from the action queue that are no longer alive
+                for agent_id in range(len(self.agent_action_queue)):
+                    if agent_id not in alive_ids:
+                        self.agent_action_queue[agent_id] = []
 
             # Handle events from pygame
             for event in pygame.event.get():
@@ -154,8 +159,6 @@ class GUI(ABC):
         for agent_actions in self.agent_action_queue:
             if agent_actions:
                 actions.append(agent_actions[0])
-            else:
-                actions.append(None)
         publisher.send(AgentActionRequest(agent_actions=actions))
 
     def _load_tiles(self) -> tuple[dict[TileType, list[pygame.Surface]], dict[TileOverlay, pygame.Surface | None]]:
@@ -341,6 +344,6 @@ class GUI(ABC):
                 for action_id, action in enumerate(actions[:4]):
                     if action is not None:
                         # Draw the action icon
-                        icon_surface = self.icon_surfaces[type(action)]
+                        icon_surface = self.icon_surfaces[type(action.action)]
                         icon_surface = pygame.transform.scale(icon_surface, (30, 30))
                         self.screen.blit(icon_surface, (sidebar_x + 30 + action_id * 30, sidebar_y + agent_id * 60 + 10))

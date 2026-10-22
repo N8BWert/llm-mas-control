@@ -90,7 +90,6 @@ class SocketPublisher(Publisher):
 
             try:
                 sock.sendall(payload)
-                print("SENDING")
             except:
                 self.connected.clear()
                 try:

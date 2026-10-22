@@ -6,6 +6,7 @@ import os
 
 import pygame
 from common.agent_action import (
+    AgentAction,
     BuildFarmAction,
     BuildHouseAction,
     BuildQuarryAction,
@@ -22,7 +23,7 @@ from common.tile import Tile
 from gui_common.gui import GUI
 
 # The assets directory
-ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/"
+ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/sprites/"
 
 
 class RtsGui(GUI):
@@ -34,7 +35,7 @@ class RtsGui(GUI):
     ACTION_BAR_Y: int = GUI.GAME_Y_OFFSET + GUI.GAME_HEIGHT
     ACTION_BAR_WIDTH: int = GUI.GAME_WIDTH
     ACTION_BAR_HEIGHT: int = GUI.SCREEN_HEIGHT - ACTION_BAR_Y
-    BUSY_WAIT_TICKS: int = 5
+    BUSY_WAIT_TICKS: int = 60
 
     def __init__(
         self,
@@ -85,11 +86,11 @@ class RtsGui(GUI):
                         position = self._pixel_to_position(x, y)
                         action = self.actions[self.selected_card](position)
                         for agent_id in self.selected_agents:
-                            self.agent_action_queue[agent_id] = [action]
+                            self.agent_action_queue[agent_id] = [AgentAction(agent_id=agent_id, action=action)]
                     elif (tile := self._clicking_tile(x, y, game_state)) is not None:
                         action = self.actions[self.selected_card](tile)
                         for agent_id in self.selected_agents:
-                            self.agent_action_queue[agent_id] = [action]
+                            self.agent_action_queue[agent_id] = [AgentAction(agent_id=agent_id, action=action)]
             elif self.ACTION_BAR_X <= x <= self.ACTION_BAR_X + self.ACTION_BAR_WIDTH and \
                     self.ACTION_BAR_Y <= y <= self.ACTION_BAR_Y + self.ACTION_BAR_HEIGHT:
                 # Check for a click in the action bar
@@ -109,15 +110,6 @@ class RtsGui(GUI):
 
 
     def tick(self, game_state: GameState):
-        for agent_state in game_state.agent_states:
-            # Pop the most recent action if the agent is no longer busy
-            if not agent_state.busy and self.agent_action_queue[agent_state.id] and self.waited_ticks[agent_state.id] >= self.BUSY_WAIT_TICKS:
-                self.agent_action_queue[agent_state.id].pop(0)
-                self.waited_ticks[agent_state.id] = 0
-            elif not agent_state.busy:
-                self.waited_ticks[agent_state.id] += 1
-            elif agent_state.busy:
-                self.waited_ticks[agent_state.id] = 0
         self._draw_action_bar()
 
     def _load_action_cards(self) -> dict[type, pygame.Surface]:

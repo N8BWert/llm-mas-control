@@ -15,10 +15,11 @@ from common.actions.mine_action import MineAction
 from common.actions.move_action import MoveAction
 from common.actions.pick_up_action import PickUpAction
 from common.convertible import Convertible
+from common.actions.action import Action
 
 
 @dataclass
-class AgentAction(Convertible):
+class AgentAction(Convertible, Action):
     agent_id: int
     action: BuildFarmAction | \
     BuildHouseAction | \
@@ -28,6 +29,9 @@ class AgentAction(Convertible):
     MineAction | \
     MoveAction | \
     PickUpAction
+
+    def time_left(self, current_tick: int) -> int:
+        return self.action.time_left(current_tick)
 
     def to_proto(self) -> agent_action_pb2.AgentAction:
         if not isinstance(self.action, Convertible):

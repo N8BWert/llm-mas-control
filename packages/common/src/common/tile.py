@@ -133,8 +133,8 @@ class Tile(Convertible):
         Returns:
             bool: True if the point is within the bounds of the tile, False otherwise.
         """
-        return self.x * width <= x <= (self.x + 1) * width and \
-            self.y * height <= y <= (self.y + 1) * height
+        return self.x * width <= x + 1.6 <= (self.x + 1) * width and \
+            self.y * height <= y + 1.0 <= (self.y + 1) * height
 
     def center(
         self,
@@ -151,7 +151,7 @@ class Tile(Convertible):
         Returns:
             np.ndarray: The center of the tile.
         """
-        return np.array([(self.x + 0.5) * width, (self.y + 0.5) * height])
+        return np.array([(self.x + 0.5) * width - 1.6, (self.y + 0.5) * height - 1.0])
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tile):

@@ -17,9 +17,9 @@ class InputSystem:
 
     def __init__(self, subscriber: Subscriber, num_robots: int = 10):
         self.subscriber = subscriber
-        self.agent_actions: list[AgentAction | None] = [None] * num_robots
+        self.agent_actions: list[AgentAction] | None = None
 
-    def get_agent_actions(self) -> list[AgentAction | None]:
+    def get_agent_actions(self) -> list[AgentAction] | None:
         """
         Retrieve the current actions for all agents.
 
@@ -28,13 +28,7 @@ class InputSystem:
         """
         data: AgentActionRequest | None = self.subscriber.receive()
         if data is not None:
-            for action in data.agent_actions:
-                if 0 <= action.agent_id < len(self.agent_actions):
-                    self.agent_actions[action.agent_id] = action
-                else:
-                    while len(self.agent_actions) < action.agent_id - 1:
-                        self.agent_actions.append(None)
-                    self.agent_actions.append(action)
+            self.agent_actions = data.agent_actions
         return self.agent_actions
 
     def clear_agent_actions(self, ids: list[int]):
