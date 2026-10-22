@@ -20,3 +20,9 @@ test target:
 
 format:
     uvx ruff check --select I --fix
+
+run-engine:
+    uv run engine
+
+run-rts:
+    uv run gui-rts

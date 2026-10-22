@@ -16,6 +16,7 @@ dependencies = [
     "robotarium_python_simulator",
     "common",
     "pillow>=12.3.0",
+    "dataclasses-json>=0.6.7",
 ]
 
 [project.scripts]

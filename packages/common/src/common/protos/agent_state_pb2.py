@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 
 from common.protos import position_pb2 as common_dot_protos_dot_position__pb2
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ommon/protos/agent_state.proto\x1a\x1c\x63ommon/protos/position.proto\"[\n\nAgentState\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x08position\x18\x02 \x01(\x0b\x32\t.Position\x12\x0c\n\x04\x62usy\x18\x03 \x01(\x08\x12\x16\n\x0e\x63\x61rrying_apple\x18\x04 \x01(\x08\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ommon/protos/agent_state.proto\x1a\x1c\x63ommon/protos/position.proto\"p\n\nAgentState\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1b\n\x08position\x18\x02 \x01(\x0b\x32\t.Position\x12\x13\n\x0borientation\x18\x03 \x01(\x01\x12\x0c\n\x04\x62usy\x18\x04 \x01(\x08\x12\x16\n\x0e\x63\x61rrying_apple\x18\x05 \x01(\x08\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,5 +33,5 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'common.protos.agent_state_p
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_AGENTSTATE']._serialized_start=65
-  _globals['_AGENTSTATE']._serialized_end=156
+  _globals['_AGENTSTATE']._serialized_end=177
 # @@protoc_insertion_point(module_scope)

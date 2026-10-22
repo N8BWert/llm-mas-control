@@ -9,6 +9,9 @@ dependencies = []
 [tool.uv.sources]
 common = { workspace = true }
 engine = { workspace = true }
+gui-common = { workspace = true }
+gui-rts = { workspace = true }
+gui-llm = { workspace = true }
 robotarium_python_simulator = { git = "https://github.com/robotarium/robotarium_python_simulator.git" }
 
 [tool.uv.workspace]
