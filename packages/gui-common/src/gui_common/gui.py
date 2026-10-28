@@ -29,7 +29,7 @@ ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../ass
 # The name of each agent in the game
 AGENT_NAMES: list[str] = [
     "Willy",
-    "Ruddy",
+    "Rudy",
     "Chris",
     "Buzz",
     "Bob",
@@ -51,11 +51,12 @@ class GUI(ABC):
     SCREEN_HEIGHT: int = 1200
     WINDOW_TITLE: str = "Age of Ants"
     GAME_WIDTH: int = 1600
-    GAME_HEIGHT: int = 1000
+    GAME_HEIGHT: int = 970
     GAME_X_OFFSET: int = (SCREEN_WIDTH - GAME_WIDTH) // 2
     GAME_Y_OFFSET: int = 0
+    GAME_PADDING: int = 10
     # GAME_Y_OFFSET: int = (SCREEN_HEIGHT - GAME_HEIGHT) // 2 - 50
-    SIDEBAR_WIDTH: int = (SCREEN_WIDTH - GAME_WIDTH) // 2
+    SIDEBAR_WIDTH: int = (SCREEN_WIDTH - GAME_WIDTH) // 2 - GAME_PADDING * 2
     SIDEBAR_HEIGHT: int = SCREEN_HEIGHT
 
     # The width of the robotarium testbed in meters
@@ -322,8 +323,35 @@ class GUI(ABC):
                     overlay_tile = pygame.transform.scale(overlay_tile, (cell_w, cell_h))
                     self.screen.blit(overlay_tile, (self.GAME_X_OFFSET + x * cell_w, self.GAME_Y_OFFSET + (game_state.height - 1 - y) * cell_h))
 
-        # TODO: Draw vertical and horizontal lines
+        # Draw vertical and horizontal lines
+        for x in range(game_state.width + 1):
+            pygame.draw.line(
+                self.screen,
+                (0, 0, 0),
+                (self.GAME_X_OFFSET + x * cell_w, self.GAME_Y_OFFSET),
+                (self.GAME_X_OFFSET + x * cell_w, self.GAME_Y_OFFSET + self.GAME_HEIGHT),
+                2
+            )
+        for y in range(game_state.height + 1):
+            pygame.draw.line(
+                self.screen,
+                (0, 0, 0),
+                (self.GAME_X_OFFSET, self.GAME_Y_OFFSET + y * cell_h),
+                (self.GAME_X_OFFSET + self.GAME_WIDTH, self.GAME_Y_OFFSET + y * cell_h),
+                2
+            )
+
         # Letters horizontal and numbers vertical
+        for x in range(game_state.width):
+            letter = chr(ord('A') + x)
+            text = self.agent_font.render(letter, True, (255, 255, 255))
+            text_rect = text.get_rect(center=(self.GAME_X_OFFSET + x * cell_w + cell_w // 2, self.GAME_Y_OFFSET + self.GAME_HEIGHT + 10))
+            self.screen.blit(text, text_rect)
+        for y in range(game_state.height):
+            number = str(y + 1)
+            text = self.agent_font.render(number, True, (255, 255, 255))
+            text_rect = text.get_rect(center=(self.GAME_X_OFFSET - 10, self.GAME_Y_OFFSET + (game_state.height - 1 - y) * cell_h + cell_h // 2))
+            self.screen.blit(text, text_rect)
 
         # Draw the agents
         for agent_state in game_state.agent_states:
@@ -375,7 +403,7 @@ class GUI(ABC):
             agent_action_queue (list[list[AgentAction]]): The queued agent actions for each agent
         """
 
-        sidebar_x = self.GAME_X_OFFSET + self.GAME_WIDTH
+        sidebar_x = self.GAME_X_OFFSET + self.GAME_WIDTH + self.GAME_PADDING
         sidebar_y = 0
 
         # Draw the actions for each agent
@@ -399,7 +427,7 @@ class GUI(ABC):
                         # Draw the action icon
                         icon_surface = self.icon_surfaces[type(action.action)]
                         icon_surface = pygame.transform.scale(icon_surface, (30, 30))
-                        self.screen.blit(icon_surface, (sidebar_x + 30 + action_id * 30, sidebar_y + agent_id * 60 + 10))
+                        self.screen.blit(icon_surface, (sidebar_x + 70 + action_id * 30, sidebar_y + agent_id * 60 + 10))
             else:
                 # Draw the agent ID in the top left corner of the rectangle
                 agent_id_text = self.agent_font.render(f"{agent_id}: (dead)", True, (255, 0, 0))
