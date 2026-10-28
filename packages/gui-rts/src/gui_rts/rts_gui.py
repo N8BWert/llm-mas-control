@@ -32,10 +32,11 @@ class RtsGui(GUI):
     """
 
     ACTION_BAR_X: int = GUI.GAME_X_OFFSET
-    ACTION_BAR_Y: int = GUI.GAME_Y_OFFSET + GUI.GAME_HEIGHT
+    ACTION_BAR_Y: int = GUI.GAME_Y_OFFSET + GUI.GAME_HEIGHT + 2 * GUI.GAME_PADDING
     ACTION_BAR_WIDTH: int = GUI.GAME_WIDTH
     ACTION_BAR_HEIGHT: int = GUI.SCREEN_HEIGHT - ACTION_BAR_Y
-    BUSY_WAIT_TICKS: int = 60
+    AGENT_HITBOX_WIDTH: int = 100
+    AGENT_HITBOX_HEIGHT: int = 100
 
     def __init__(
         self,
@@ -161,7 +162,7 @@ class RtsGui(GUI):
         """
         for agent_id, pixel_position in enumerate(self.agent_pixel_positions):
             agent_x, agent_y = pixel_position
-            agent_rect = pygame.Rect(agent_x, agent_y, 50, 50)
+            agent_rect = pygame.Rect(agent_x, agent_y, self.AGENT_HITBOX_WIDTH, self.AGENT_HITBOX_HEIGHT)
             if agent_rect.collidepoint(x, y):
                 return agent_id
         return None
