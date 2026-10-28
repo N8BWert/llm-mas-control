@@ -36,5 +36,7 @@ class LLMGui(GUI):
         """
         Draw the bottom LLM bar onto the screen that contains the actions
         that the agents can take. 
+
+        NOTE: Last response + possibly scrollable
         """
         pass

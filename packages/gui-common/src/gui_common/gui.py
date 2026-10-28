@@ -26,6 +26,19 @@ from common.tile import Tile, TileOverlay, TileType
 
 # The assets directory
 ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/sprites/"
+# The name of each agent in the game
+AGENT_NAMES: list[str] = [
+    "Willy",
+    "Ruddy",
+    "Chris",
+    "Buzz",
+    "Bob",
+    "Levi",
+    "Sally",
+    "Sue",
+    "Alice",
+    "Zeke",
+]
 
 
 class GUI(ABC):
@@ -34,11 +47,11 @@ class GUI(ABC):
     can reuse components as much as possible 
     """
 
-    SCREEN_WIDTH: int = 1280
-    SCREEN_HEIGHT: int = 720
+    SCREEN_WIDTH: int = 2048
+    SCREEN_HEIGHT: int = 1200
     WINDOW_TITLE: str = "Age of Ants"
-    GAME_WIDTH: int = 900
-    GAME_HEIGHT: int = 600
+    GAME_WIDTH: int = 1600
+    GAME_HEIGHT: int = 1000
     GAME_X_OFFSET: int = (SCREEN_WIDTH - GAME_WIDTH) // 2
     GAME_Y_OFFSET: int = 0
     # GAME_Y_OFFSET: int = (SCREEN_HEIGHT - GAME_HEIGHT) // 2 - 50
@@ -78,6 +91,7 @@ class GUI(ABC):
 
         # Load our tiles
         self.tile_type_surfaces, self.tile_overlay_surfaces = self._load_tiles()
+        self.shadow_tile_surfaces = self._load_shadow_tiles()
         self.agent_surfaces = self._load_agents()
         self.icon_surfaces = self._load_icons()
         self.agent_font = pygame.font.Font(None, 24)
@@ -195,6 +209,22 @@ class GUI(ABC):
 
         return tile_types, tile_overlays
 
+    def _load_shadow_tiles(self) -> dict[TileType, pygame.Surface]:
+        """
+        Load the shadow form of each tile from the assets directory
+
+        Returns:
+            A dictionary mapping from tile types to the relative shadow tile type 
+        """
+        shadow_tiles: dict[TileType, pygame.Surface] = {}
+        for tile_type in TileType:
+            filename = tile_type.asset_name(0)
+            img = pygame.image.load(ASSETS_DIR + filename).convert_alpha()
+
+            grayscale_img = pygame.transform.grayscale(img)
+            shadow_tiles[tile_type] = grayscale_img
+        return shadow_tiles
+
     def _load_agents(self) -> list[pygame.Surface]:
         """
         Load the agent assets from the assets directory 
@@ -255,10 +285,30 @@ class GUI(ABC):
         cell_w = self.GAME_WIDTH // game_state.width
         cell_h = self.GAME_HEIGHT // game_state.height
 
+        self.shadow_farm_tiles = set()
+        self.shadow_house_tiles = set()
+        self.shadow_quarry_tiles = set()
+        for agent_id in range(len(game_state.agent_states)):
+            if self.agent_action_queue[agent_id]:
+                match self.agent_action_queue[agent_id][0].action:
+                    case BuildFarmAction(tile):
+                        self.shadow_farm_tiles.add((tile.x, tile.y))
+                    case BuildHouseAction(tile):
+                        self.shadow_house_tiles.add((tile.x, tile.y))
+                    case BuildQuarryAction(tile):
+                        self.shadow_quarry_tiles.add((tile.x, tile.y))
+
         # Draw the tiles
         for x in range(game_state.width):
             for y in range(game_state.height):
-                surface_tile = self.tile_type_surfaces[game_state.tile_states[x + y * game_state.width].tile_type]
+                if (x, y) in self.shadow_farm_tiles and game_state.tile_states[x + y * game_state.width].tile_type != TileType.FARM:
+                    surface_tile = [self.shadow_tile_surfaces[TileType.FARM]]
+                elif (x, y) in self.shadow_house_tiles and game_state.tile_states[x + y * game_state.width].tile_type != TileType.HOUSE:
+                    surface_tile = [self.shadow_tile_surfaces[TileType.HOUSE]]
+                elif (x, y) in self.shadow_quarry_tiles and game_state.tile_states[x + y * game_state.width].tile_type != TileType.QUARRY:
+                    surface_tile = [self.shadow_tile_surfaces[TileType.QUARRY]]
+                else:
+                    surface_tile = self.tile_type_surfaces[game_state.tile_states[x + y * game_state.width].tile_type]
                 if len(surface_tile) > 1:
                     surface_tile = [surface_tile[x % 2]]
                 surface_tile = pygame.transform.scale(
@@ -271,6 +321,9 @@ class GUI(ABC):
                 if overlay_tile is not None:
                     overlay_tile = pygame.transform.scale(overlay_tile, (cell_w, cell_h))
                     self.screen.blit(overlay_tile, (self.GAME_X_OFFSET + x * cell_w, self.GAME_Y_OFFSET + (game_state.height - 1 - y) * cell_h))
+
+        # TODO: Draw vertical and horizontal lines
+        # Letters horizontal and numbers vertical
 
         # Draw the agents
         for agent_state in game_state.agent_states:
@@ -288,14 +341,14 @@ class GUI(ABC):
             self.screen.blit(surface, (x, y))
             self.agent_pixel_positions[agent_state.id] = (x, y)
 
-            # Draw the agent's ID
+            # Draw the agent's name
             rect = surface.get_rect(topleft=(x, y))
             self.screen.blit(surface, rect)
-            shadow = self.agent_font.render(str(agent_state.id), True, (0, 0, 0))
+            shadow = self.agent_font.render(AGENT_NAMES[agent_state.id], True, (0, 0, 0))
             if agent_state.id in self.selected_agents:
-                text = self.agent_font.render(str(agent_state.id), True, (255, 0, 0))
+                text = self.agent_font.render(AGENT_NAMES[agent_state.id], True, (255, 0, 0))
             else:
-                text = self.agent_font.render(str(agent_state.id), True, (255, 255, 255))
+                text = self.agent_font.render(AGENT_NAMES[agent_state.id], True, (255, 255, 255))
             text_rect = text.get_rect(midbottom=(rect.centerx, rect.top+8))
             self.screen.blit(shadow, (text_rect.x + 1, text_rect.y + 1))
             self.screen.blit(text, text_rect)
@@ -338,7 +391,7 @@ class GUI(ABC):
             # Check if agent is included in the game state
             if any(agent_state.id == agent_id for agent_state in game_state.agent_states):
                 # draw the agent ID in the top left corner of the rectangle
-                agent_id_text = self.agent_font.render(f"{agent_id}:", True, (255, 255, 255))
+                agent_id_text = self.agent_font.render(f"{AGENT_NAMES[agent_id]}:", True, (255, 255, 255))
                 self.screen.blit(agent_id_text, (sidebar_x + 10, sidebar_y + agent_id * 60 + 20))
                 # Draw the queued actions for the agent
                 for action_id, action in enumerate(actions[:4]):
@@ -347,3 +400,7 @@ class GUI(ABC):
                         icon_surface = self.icon_surfaces[type(action.action)]
                         icon_surface = pygame.transform.scale(icon_surface, (30, 30))
                         self.screen.blit(icon_surface, (sidebar_x + 30 + action_id * 30, sidebar_y + agent_id * 60 + 10))
+            else:
+                # Draw the agent ID in the top left corner of the rectangle
+                agent_id_text = self.agent_font.render(f"{agent_id}: (dead)", True, (255, 0, 0))
+                self.screen.blit(agent_id_text, (sidebar_x + 10, sidebar_y + agent_id * 60 + 20))

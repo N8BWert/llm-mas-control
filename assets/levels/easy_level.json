@@ -60,7 +60,7 @@
             }
         },
         {
-            "tick": 60,
+            "tick": 600,
             "event_type": 1,
             "tile": {
                 "x": 7,
@@ -68,7 +68,7 @@
             }
         },
         {
-            "tick": 60,
+            "tick": 600,
             "event_type": 1,
             "tile": {
                 "x": 7,
@@ -76,7 +76,7 @@
             }
         },
         {
-            "tick": 60,
+            "tick": 600,
             "event_type": 1,
             "tile": {
                 "x": 6,
@@ -84,7 +84,7 @@
             }
         },
         {
-            "tick": 60,
+            "tick": 600,
             "event_type": 1,
             "tile": {
                 "x": 6,
