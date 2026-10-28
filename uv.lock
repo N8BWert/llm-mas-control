@@ -771,14 +771,20 @@ name = "gui-llm"
 version = "0.1.0"
 source = { editable = "packages/gui-llm" }
 dependencies = [
+    { name = "anthropic" },
     { name = "gui-common" },
+    { name = "jsonschema" },
     { name = "pygame-ce" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", specifier = ">=2.3.0" },
     { name = "gui-common", editable = "packages/gui-common" },
+    { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "pygame-ce", specifier = ">=2.5.8" },
+    { name = "python-dotenv", specifier = ">=1.2.4" },
 ]
 
 [[package]]
@@ -1217,11 +1223,6 @@ dev = [
     { name = "grpcio-tools" },
     { name = "pytest" },
 ]
-llm = [
-    { name = "anthropic" },
-    { name = "jsonschema" },
-    { name = "python-dotenv" },
-]
 
 [package.metadata]
 
@@ -1229,11 +1230,6 @@ llm = [
 dev = [
     { name = "grpcio-tools", specifier = ">=1.84.0" },
     { name = "pytest", specifier = ">=9.1.1" },
-]
-llm = [
-    { name = "anthropic", specifier = ">=2.3.0" },
-    { name = "jsonschema", specifier = ">=4.26.0" },
-    { name = "python-dotenv", specifier = ">=1.2.4" },
 ]
 
 [[package]]
