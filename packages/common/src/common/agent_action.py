@@ -6,6 +6,7 @@ from a protobuf into a algebraic type for ease of use)
 from dataclasses import dataclass
 
 import common.protos.agent_action_pb2 as agent_action_pb2
+from common.actions.action import Action
 from common.actions.build_farm_action import BuildFarmAction
 from common.actions.build_house_action import BuildHouseAction
 from common.actions.build_quarry_action import BuildQuarryAction
@@ -15,7 +16,6 @@ from common.actions.mine_action import MineAction
 from common.actions.move_action import MoveAction
 from common.actions.pick_up_action import PickUpAction
 from common.convertible import Convertible
-from common.actions.action import Action
 
 
 @dataclass

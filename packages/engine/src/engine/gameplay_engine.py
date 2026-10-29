@@ -32,10 +32,10 @@ from rps.robotarium import Robotarium
 from rps.utilities.barrier_certificates import create_si_barrier_certificate
 from rps.utilities.transformations import create_si_to_uni_mapping
 
+from engine.barrier_certificate import CentralizedCircularBarrier
 from engine.controller import SingleAgentController
 from engine.input_system import InputSystem
 from engine.level import EventType, Level
-from engine.barrier_certificate import CentralizedCircularBarrier
 
 # The number of points you gain per apple
 POINTS_PER_APPLE: int = 500

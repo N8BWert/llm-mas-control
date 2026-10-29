@@ -4,8 +4,8 @@ Main entrypoint for the game engine
 
 import argparse
 import os
-import numpy as np
 
+import numpy as np
 from common.agent_action import AgentActionRequest
 from common.publishers.socket_publisher import SocketPublisher
 from common.subscribers.socket_subscriber import SocketSubscriber
