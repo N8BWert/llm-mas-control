@@ -96,6 +96,8 @@ class GameplayEngine:
         self.max_agents = self.robotarium.number_of_robots
         # The agents that entered a bird tile and must respawn
         self.respawning_agents = set()
+        # The agents that have been spawned from building a house
+        self.spawning_agents = set()
         # What agents are carrying apples
         self.agent_carrying = [False] * self.max_agents
         # The input system for handling user inputs
@@ -152,6 +154,11 @@ class GameplayEngine:
         for robot_id in range(self.agents):
             if robot_id in self.respawning_agents:
                 dxi[:, robot_id] = self.controller.apply(x_si[:, robot_id], self.castle_tile.center(self.tile_width, self.tile_height))
+                continue
+            if robot_id in self.spawning_agents:
+                dxi[:, robot_id] = self.controller.apply(x_si[:, robot_id], self.castle_tile.center(self.tile_width, self.tile_height))
+                if self.current_actions[robot_id] is not None:
+                    self.spawning_agents.remove(robot_id)
                 continue
             if self.current_actions[robot_id] is None:
                 continue
@@ -301,8 +308,8 @@ class GameplayEngine:
         x_si[1, :] += 1.0
         for agent_id in range(x_si.shape[1]):
             tiles.append(Tile(
-                x=int(x_si[0, agent_id] // self.tile_width),
-                y=int(x_si[1, agent_id] // self.tile_height)
+                x=min(self.tiles_x - 1, max(0, int(x_si[0, agent_id] // self.tile_width))),
+                y=min(self.tiles_y - 1, max(0, int(x_si[1, agent_id] // self.tile_height)))
             ))
         return tiles
 
@@ -418,9 +425,7 @@ class GameplayEngine:
         )
         self.points -= BuildHouseAction.POINTS_TO_BUILD
         self.agents += 1
-        self.current_actions[self.agents - 1] = [MoveAction(
-            position = self.castle_tile.center(self.tile_width, self.tile_height)
-        ), 0]
+        self.spawning_agents.add(self.agents - 1)
         self.tiles_updated = True
 
     def _build_quarry(self, quarry_tile: Tile):
@@ -482,7 +487,7 @@ class GameplayEngine:
             self.agent_carrying[robot_id] = False
 
     def _pickup_item(self, robot_id: int, pickup_tile: Tile):
-        if self.tiles[pickup_tile.x + self.tiles_x * pickup_tile.y].tile_overlay == TileOverlay.APPLE:
+        if self.tiles[pickup_tile.x + self.tiles_x * pickup_tile.y].tile_overlay == TileOverlay.APPLE and self.agent_carrying[robot_id] == False:
             self.agent_carrying[robot_id] = True
             self.tiles[pickup_tile.x + self.tiles_x * pickup_tile.y].tile_overlay = TileOverlay.NONE
 
@@ -505,8 +510,11 @@ class GameplayEngine:
             height (float): The height of the tile.
         """
         # Draw the base tile
-        if self.tile_images[tile.x + tile.y * self.tiles_x] is not None:
-            self.tile_images[tile.x + tile.y * self.tiles_x].remove()
+        try:
+            if self.tile_images[tile.x + tile.y * self.tiles_x] is not None:
+                self.tile_images[tile.x + tile.y * self.tiles_x].remove()
+        except:
+            pass
         img = Image.open(ASSETS_DIR + tile_state.tile_type.asset_name(tile.x + tile.y * self.tiles_x))
         arr = np.asarray(img)
         tile_image = axes.imshow(
@@ -525,8 +533,11 @@ class GameplayEngine:
         self.tile_images[tile.x + tile.y * self.tiles_x] = tile_image
 
         overlay_file = tile_state.tile_overlay.asset_name()
-        if self.tile_overlay_images[tile.x + tile.y * self.tiles_x] is not None:
-            self.tile_overlay_images[tile.x + tile.y * self.tiles_x].remove()
+        try:
+            if self.tile_overlay_images[tile.x + tile.y * self.tiles_x] is not None:
+                self.tile_overlay_images[tile.x + tile.y * self.tiles_x].remove()
+        except:
+            pass
         if overlay_file is not None:
             img = Image.open(ASSETS_DIR + overlay_file)
             arr = np.asarray(img)
