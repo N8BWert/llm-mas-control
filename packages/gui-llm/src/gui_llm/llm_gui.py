@@ -8,6 +8,11 @@ from common.publisher import Publisher
 from common.subscriber import Subscriber
 from gui_common.gui import GUI
 
+from dotenv import load_dotenv
+from anthropic import Anthropic
+from pathlib import Path
+import json
+
 
 class LLMGui(GUI):
     """
@@ -21,6 +26,18 @@ class LLMGui(GUI):
     ):
         super().__init__(game_state_subscriber, game_action_publisher)
         self.current_prompt: str = ""
+
+        HERE = Path(__file__).resolve().parent
+        self.system_prompt = (HERE / "schemae" / "system_prompt.md").read_text()
+        self.input_schema = json.loads((HERE / "schemae" / "input_schema.json").read_text())
+        self.output_schema = json.loads((HERE / "schemae" / "output_schema.json").read_text())
+
+        load_dotenv()
+        self.client = Anthropic()  # reads ANTHROPIC_API_KEY
+        self.base_kwargs = {
+            "model":"claude-haiku-5-5",
+            "max_tokens":1500,
+        }
 
     def handle_input(self, event: pygame.event.Event, game_state: GameState | None):
         pass
