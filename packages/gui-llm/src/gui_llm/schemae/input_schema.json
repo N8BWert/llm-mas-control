@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lieutenant input",
+  "description": "A JSON object corresponding to a player's request to the LLM: the transcript plus a text-only snapshot of the game as the player sees it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request", "game", "ants", "entities", "proximity", "events", "memory"],
+  "properties": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "description": "Opaque id for logging." },
+        "text": { "type": "string", "description": "The only source of instructions." }
+      }
+    },
+
+    "game": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time_elapsed_s", "time_remaining_s", "points"],
+      "properties": {
+        "time_elapsed_s": { "type": "number", "minimum": 0 },
+        "time_remaining_s": { "type": "number", "minimum": 0 },
+        "points": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "ants": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ant" }
+    },
+
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" },
+      "description": "Only things currently visible to the player, plus the player's own structures. Ids must stay stable for the life of the entity."
+    },
+
+    "proximity": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/symbol" },
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": { "$ref": "#/$defs/symbol" }
+      },
+      "description": "Undirected proximity graph as an adjacency list. Every ant id and every entity id appears exactly once as a key. Its value lists the ids of all ants and entities within a small fixed distance of it. Links are symmetric: if B is listed under A, then A is listed under B. An empty list means nothing is close by. The graph can be disconnected; a missing link means 'not close', not 'unreachable'."
+    },
+
+    "events": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/event" },
+      "description": "Most recent first. Up to 10 events from roughly the last 60 s."
+    },
+
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["notes", "recent_exchanges"],
+      "properties": {
+        "notes": { "type": "string", "description": "The Lieutenant's own notes, echoed back from its last memory_notes." },
+        "recent_exchanges": {
+          "type": "array",
+          "maxItems": 5,
+          "description": "Most recent first. Written by the harness, not the LLM.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seconds_ago", "user_text", "status", "summary", "referenced"],
+            "properties": {
+              "seconds_ago": { "type": "number", "minimum": 0 },
+              "user_text": { "type": "string" },
+              "status": { "enum": ["ok", "refused"] },
+              "summary": { "type": "string", "description": "What the system told the player it understood." },
+              "referenced": { "type": "array", "items": { "$ref": "#/$defs/symbol" }, "description": "Ants, entities and grid cells that exchange touched." }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "symbol": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" },
+    "cell": {
+      "type": "string",
+      "pattern": "^[A-Z][0-9]+$",
+      "description": "Chess-style grid cell as shown in the GUI: column letter, then row number, e.g. 'N9'."
+    },
+    "ant_id": {
+      "enum": ["Willy", "Rudy", "Chris", "Buzz", "Bob", "Levi", "Sally", "Sue", "Alice", "Zeke"],
+      "description": "The ant's player-facing name."
+    },
+    "action": {
+      "enum": ["move", "pick_up", "drop", "build_farm", "build_house", "build_quarry", "farm", "mine"]
+    },
+    "queued_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cmd_id", "action", "target", "status"],
+      "properties": {
+        "cmd_id": { "type": "string" },
+        "action": { "$ref": "#/$defs/action" },
+        "target": {
+          "anyOf": [{ "$ref": "#/$defs/symbol" }, { "$ref": "#/$defs/cell" }],
+          "description": "An ant id, an entity id, or a grid cell such as 'N9'."
+        },
+        "status": { "enum": ["active", "queued"] }
+      }
+    },
+    "ant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "idle", "carrying_apple", "queue"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ant_id" },
+        "idle": { "type": "boolean", "description": "True when the engine reports the ant free AND its queue is empty." },
+        "carrying_apple": { "type": "boolean" },
+        "queue": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/queued_command" },
+          "description": "Active command first, then queued commands in order. Comes from the sequencer, not the engine."
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "targeted_by"],
+      "properties": {
+        "id": { "$ref": "#/$defs/symbol" },
+        "kind": { "enum": ["castle", "house", "farm", "quarry", "apple", "bird"] },
+        "targeted_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ant_id" },
+          "description": "Ants that have this entity as the target of an active or queued command."
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seconds_ago", "type", "ant", "entity", "detail"],
+      "properties": {
+        "seconds_ago": { "type": "number", "minimum": 0 },
+        "type": {
+          "enum": ["apple_spawned", "apple_delivered", "bird_spawned", "ant_carried_off", "ant_respawned", "build_complete", "command_completed", "command_failed"]
+        },
+        "ant": { "anyOf": [{ "$ref": "#/$defs/ant_id" }, { "type": "null" }] },
+        "entity": { "anyOf": [{ "$ref": "#/$defs/symbol" }, { "type": "null" }] },
+        "detail": { "type": ["string", "null"], "description": "Free text, e.g. a failure reason." }
+      }
+    }
+  }
+}

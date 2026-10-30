@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lieutenant output",
+  "description": "A JSON object corresponding to the LLM's response to a player request. The sequencer will execute all cancels then all orders (each in listed order). Cross-field and reference rules about valid IDs are NOT expressible here and are checked by the parser.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reasoning", "status", "refusal_reason", "summary", "unhandled", "cancels", "orders", "memory_notes"],
+  "properties": {
+    "reasoning": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Short scratchpad, written first so the model resolves references before committing. Logged, never shown to the player."
+    },
+    "status": { "enum": ["ok", "refused"] },
+    "refusal_reason": {
+      "type": ["string", "null"],
+      "enum": ["unintelligible", "out_of_scope", "unsupported_action", "unknown_reference", "ambiguous", null],
+      "description": "null when status is ok; required when status is refused."
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 400,
+      "description": "One or two plain sentences shown to the player: what will happen, or why the request was refused."
+    },
+    "unhandled": {
+      "type": "array",
+      "maxItems": 6,
+      "items": { "type": "string", "maxLength": 200 },
+      "description": "Parts of an otherwise-ok request that could not be translated."
+    },
+
+    "cancels": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subjects", "scope", "command_ids"],
+        "properties": {
+          "subjects": { "$ref": "#/$defs/subjects" },
+          "scope": { "enum": ["current", "all", "ids"] },
+          "command_ids": { "type": "array", "maxItems": 20, "items": { "type": "string" }, "description": "cmd_id values from the ants' queues; non-empty only when scope is 'ids'." }
+        }
+      }
+    },
+
+    "orders": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subjects", "mode", "steps", "options"],
+        "properties": {
+          "subjects": { "$ref": "#/$defs/subjects" },
+          "mode": { "enum": ["replace", "append"], "description": "replace: drop the subject's current and queued commands first. append: add to the end of its queue." },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["action", "target"],
+              "properties": {
+                "action": { "$ref": "#/$defs/action" },
+                "target": {
+                  "anyOf": [{ "$ref": "#/$defs/symbol" }, { "$ref": "#/$defs/cell" }],
+                  "description": "An ant or entity id from the input state, a grid cell such as 'N9', or the reserved symbol 'just_built'."
+                }
+              }
+            }
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["formation", "avoid_water"],
+            "properties": {
+              "formation": { "enum": ["none", "cluster", "spread"], "description": "Hint to the sequencer for multi-ant movement." },
+              "avoid_water": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+
+    "memory_notes": {
+      "type": ["string", "null"],
+      "maxLength": 400,
+      "description": "Full replacement for the Lieutenant's notes, or null to keep the existing notes."
+    }
+  },
+
+  "$defs": {
+    "symbol": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" },
+    "cell": {
+      "type": "string",
+      "pattern": "^[A-Z][0-9]+$",
+      "description": "Chess-style grid cell as shown in the GUI: column letter, then row number, e.g. 'N9'."
+    },
+    "ant_id": {
+      "enum": ["Willy", "Rudy", "Chris", "Buzz", "Bob", "Levi", "Sally", "Sue", "Alice", "Zeke"],
+      "description": "The ant's player-facing name."
+    },
+    "subjects": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/ant_id" },
+      "description": "The ants the order or cancel applies to."
+    },
+    "action": {
+      "enum": ["move", "pick_up", "drop", "build_farm", "build_house", "build_quarry", "farm", "mine"]
+    }
+  }
+}
