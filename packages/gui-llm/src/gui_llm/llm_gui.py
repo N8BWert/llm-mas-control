@@ -3,11 +3,11 @@ A simple GUI for LLM-based multi-agent control
 """
 
 import pygame
+import pygame_gui
 from common.game_state import GameState
 from common.publisher import Publisher
 from common.subscriber import Subscriber
 from gui_common.gui import GUI
-import pygame_gui
 
 
 class LLMGui(GUI):
