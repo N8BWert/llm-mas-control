@@ -10,6 +10,7 @@ init:
         --python_out={{COMMON_PROTO_DIR}} \
         `find {{PROTO_DIR}} -name "*.proto"`
     uv sync --all-packages
+    uvx ruff check --select I --fix
 
 clean:
     rm -rf {{COMMON_PROTO_DIR}}/common/protos
@@ -26,3 +27,6 @@ run-engine:
 
 run-rts:
     uv run gui-rts
+
+run-llm:
+    uv run gui-llm
