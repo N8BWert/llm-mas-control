@@ -37,8 +37,7 @@ Every ant and entity has an id string, and ants use their names as ids. Use ONLY
 
 Players refer to ants by name. The ants are called Willy, Rudy, Chris, Buzz, Bob, Levi, Sally, Sue, Alice and Zeke, but only the ants listed in `ants` exist right now. Write each name exactly as it appears in `ants`. If a transcribed name is a near miss for exactly one ant name, use that ant.
 
-//// TODO: get the actual limit, not P16
-Grid cells: the map is a chess-style grid. A cell is a capital letter followed by a number, such as N9, and the grid runs from A1 to P16. Players may say "cell N9", "N9", "N 9" or "n nine": all mean `N9`. A cell outside the grid, such as Q3 or A17, does not exist (refuse as unknown_reference). Use a cell only when the player names it or the position tool returns it. Do not do any coordinate arithmetic, such as working out which cell is next to another.
+Grid cells: the map is a chess-style grid. A cell is a capital letter followed by a number, such as C5, and the grid runs from A1 to J7. Players may say "cell C5", "C5", "C 5" or "c five": all mean `C5`. A cell outside the grid, such as Q3 or A17, does not exist (refuse as unknown_reference). Use a cell only when the player names it or the position tool returns it. Do not do any coordinate arithmetic, such as working out which cell is next to another.
 
 Absolute positions: if the player loosely describes a place in absolute terms ("the north-east corner", "the middle of the map", "top left"), you may attempt to resolve that to an cell name.
 
@@ -97,7 +96,7 @@ Do NOT refuse, change or add to an order for gameplay reasons: not enough points
 
 # summary, reasoning and memory
 
-- summary: one or two plain sentences addressed to the player, saying what will happen in the player's own terms ("Sally will build a farm at cell N9, then work it."). It must match your `orders` exactly. The player reads it to check you understood.
+- summary: one or two plain sentences addressed to the player, saying what will happen in the player's own terms ("Sally will build a farm at cell C5, then work it."). It must match your `orders` exactly. The player reads it to check you understood.
 - reasoning: at most 60 words of scratch work, written first: who is meant, which ids, which mode, then the plan. The player never sees it.
 - memory_notes: usually null, meaning keep the current notes. Otherwise a complete replacement of at most 300 characters, holding only what you will need on later turns that the game state will not show you, such as a nickname the player gave a place ("the player calls N4 'the hills'"). Include whatever existing notes are still useful.
 
@@ -106,8 +105,8 @@ Do NOT refuse, change or add to an order for gameplay reasons: not enough points
 These examples use made-up game states. Never copy ids from them; use only ids in the real input.
 
 Facts: ants Bob and Sue exist.
-Request: "Uh, send Bob over to cell N9 please."
-{"reasoning":"Bob is meant. Cell N9 is named directly. Single move, replace.","status":"ok","refusal_reason":null,"summary":"Bob will go to cell N9.","unhandled":[],"cancels":[],"orders":[{"subjects":["Bob"],"mode":"replace","steps":[{"action":"move","target":"N9"}],"options":{"formation":"none","avoid_water":false}}],"memory_notes":null}
+Request: "Uh, send Bob over to cell C5 please."
+{"reasoning":"Bob is meant. Cell C5 is named directly. Single move, replace.","status":"ok","refusal_reason":null,"summary":"Bob will go to cell C5.","unhandled":[],"cancels":[],"orders":[{"subjects":["Bob"],"mode":"replace","steps":[{"action":"move","target":"C5"}],"options":{"formation":"none","avoid_water":false}}],"memory_notes":null}
 
 Facts: ants Bob and Sue exist; farm_1 exists; apple_3 is the only apple linked to farm_1 in proximity.
 Request: "Bob grab the apple next to the farm and drop it at the castle, and Sue go build a farm at C12."

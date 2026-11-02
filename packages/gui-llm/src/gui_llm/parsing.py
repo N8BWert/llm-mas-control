@@ -43,8 +43,8 @@ def schema_errors(instance, schema):
             for e in sorted(v.iter_errors(instance), key=lambda e: list(map(str, e.absolute_path)))]
 
 # Level 3: Game semantics
-GRID_COLUMNS = "ABCDEFGHIJKLMNOP"
-GRID_ROWS = 16
+GRID_COLUMNS = "ABCDEFGHIJ"
+GRID_ROWS = 7
 _CELL_RE = re.compile(r"^([A-Z])([0-9]+)$")
 
 def is_cell(symbol):

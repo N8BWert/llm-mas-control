@@ -66,7 +66,7 @@
                 "action": { "$ref": "#/$defs/action" },
                 "target": {
                   "anyOf": [{ "$ref": "#/$defs/symbol" }, { "$ref": "#/$defs/cell" }],
-                  "description": "An ant or entity id from the input state, a grid cell such as 'N9', or the reserved symbol 'just_built'."
+                  "description": "An ant or entity id from the input state, a grid cell such as 'C5', or the reserved symbol 'just_built'."
                 }
               }
             }
@@ -96,7 +96,7 @@
     "cell": {
       "type": "string",
       "pattern": "^[A-Z][0-9]+$",
-      "description": "Chess-style grid cell as shown in the GUI: column letter, then row number, e.g. 'N9'."
+      "description": "Chess-style grid cell as shown in the GUI: column letter, then row number, e.g. 'C5'."
     },
     "ant_id": {
       "enum": ["Willy", "Rudy", "Chris", "Buzz", "Bob", "Levi", "Sally", "Sue", "Alice", "Zeke"],
