@@ -5,13 +5,14 @@ The native robotarium one is super aggressive so this will be significantly less
 """
 
 import math
-import numpy as np
-from typing import Optional
 from abc import ABC, abstractmethod
-from cvxopt import matrix, sparse
-from cvxopt.solvers import qp, options
-from matplotlib.axes import Axes
+from typing import Optional
+
 import matplotlib.patches as patches
+import numpy as np
+from cvxopt import matrix, sparse
+from cvxopt.solvers import options, qp
+from matplotlib.axes import Axes
 
 options["show_progress"] = False
 options["reltol"] = 1e-6

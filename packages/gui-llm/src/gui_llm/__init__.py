@@ -12,11 +12,11 @@ from gui_llm.llm_gui import LLMGui
 
 
 def parse_arguments() -> tuple[tuple[str, int], tuple[str, int]]:
-    parser = argparse.ArgumentParser(description="Run the LLM GUI for Age of Ants.")
+    parser = argparse.ArgumentParser(description="Run the RTS GUI for Age of Ants.")
     parser.add_argument("--send-address", help="Address to send data to", type=str, default="localhost")
-    parser.add_argument("--send-port", help="Port to send data to", type=int, default="8080")
+    parser.add_argument("--send-port", help="Port to send data to", type=int, default="8081")
     parser.add_argument("--bind-address", help="Address to bind to", type=str, default="localhost")
-    parser.add_argument("--bind-port", help="Port to bind to", type=int, default="8081")
+    parser.add_argument("--bind-port", help="Port to bind to", type=int, default="8080")
     args = parser.parse_args()
     return (args.send_address, int(args.send_port)), (args.bind_address, int(args.bind_port))
 

@@ -13,6 +13,7 @@ dependencies = [
     "anthropic>=2.3.0",
     "jsonschema>=4.26.0",
     "python-dotenv>=1.2.4",
+    "pygame-gui>=0.6.14",
 ]
 
 [project.scripts]
