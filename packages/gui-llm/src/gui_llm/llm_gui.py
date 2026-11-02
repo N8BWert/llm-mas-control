@@ -2,17 +2,17 @@
 A simple GUI for LLM-based multi-agent control
 """
 
+import json
+from pathlib import Path
+
 import pygame
 import pygame_gui
+from anthropic import Anthropic
 from common.game_state import GameState
 from common.publisher import Publisher
 from common.subscriber import Subscriber
-from gui_common.gui import GUI
-
 from dotenv import load_dotenv
-from anthropic import Anthropic
-from pathlib import Path
-import json
+from gui_common.gui import GUI
 
 
 class LLMGui(GUI):

@@ -1,7 +1,7 @@
 import json
 import re
-from jsonschema import Draft202012Validator
 
+from jsonschema import Draft202012Validator
 
 
 # Level 1: JSON formatting
