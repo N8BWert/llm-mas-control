@@ -1,6 +1,20 @@
 import json
 import re
 
+from common.agent_action import (
+    AgentAction,
+    BuildFarmAction,
+    BuildHouseAction,
+    BuildQuarryAction,
+    DropAction,
+    FarmAction,
+    MineAction,
+    MoveAction,
+    PickUpAction,
+)
+from common.game_state import GameState
+from common.tile import Tile, TileOverlay, TileType
+from gui_common.gui import AGENT_NAMES, GUI
 from jsonschema import Draft202012Validator
 
 
@@ -129,3 +143,146 @@ def reference_errors(state, out):
                     errs.append(f"{sw}: {action} cannot target a {cls} ({target})")
             prev_action = action
     return errs
+
+# Level 4: Translation between the game and the LLM's symbols
+ACTION_TYPES = {
+    "move": MoveAction,
+    "pick_up": PickUpAction,
+    "drop": DropAction,
+    "build_farm": BuildFarmAction,
+    "build_house": BuildHouseAction,
+    "build_quarry": BuildQuarryAction,
+    "farm": FarmAction,
+    "mine": MineAction,
+}
+ACTION_NAMES = {action_type: name for name, action_type in ACTION_TYPES.items()}
+STRUCTURE_KINDS = {
+    TileType.CASTLE: "castle",
+    TileType.HOUSE: "house",
+    TileType.FARM: "farm",
+    TileType.QUARRY: "quarry",
+}
+OVERLAY_KINDS = {TileOverlay.APPLE: "apple", TileOverlay.BIRD: "bird"}
+
+def tile_to_cell(tile: Tile) -> str:
+    return f"{GRID_COLUMNS[tile.x]}{tile.y + 1}"
+
+def cell_to_tile(cell: str) -> Tile:
+    return Tile(GRID_COLUMNS.index(cell[0]), int(cell[1:]) - 1)
+
+def _tile_size(game_state: GameState) -> tuple[float, float]:
+    return GUI.ROBOTARIUM_WIDTH / game_state.width, GUI.ROBOTARIUM_HEIGHT / game_state.height
+
+def _position_to_tile(position, game_state: GameState) -> Tile:
+    tile_width, tile_height = _tile_size(game_state)
+    x = int((position[0] + GUI.ROBOTARIUM_WIDTH / 2) // tile_width)
+    y = int((position[1] + GUI.ROBOTARIUM_HEIGHT / 2) // tile_height)
+    return Tile(min(game_state.width - 1, max(0, x)), min(game_state.height - 1, max(0, y)))
+
+def cmd_id(agent_action: AgentAction) -> str:
+    return f"cmd_{id(agent_action)}"
+
+def _queued_command(agent_action: AgentAction, active: bool, game_state: GameState) -> dict:
+    action = agent_action.action
+    tile = _position_to_tile(action.position, game_state) if isinstance(action, MoveAction) else action.tile
+    return {
+        "cmd_id": cmd_id(agent_action),
+        "action": ACTION_NAMES[type(action)],
+        "target": tile_to_cell(tile),
+        "status": "active" if active else "queued",
+    }
+
+def build_llm_input(text: str, game_state: GameState, queues: list[list[AgentAction]]) -> tuple[dict, dict[str, Tile]]:
+    """
+    Snapshots the game as the input_schema.json object the LLM expects.
+
+    Returns:
+        The LLM input, and the tile of each entity id in it (needed to translate the output).
+    """
+    ants = []
+    locations: dict[str, Tile] = {}
+    for agent in game_state.agent_states:
+        name = AGENT_NAMES[agent.id]
+        queue = queues[agent.id]
+        ants.append({
+            "id": name,
+            "idle": not agent.busy and not queue,
+            "carrying_apple": agent.carrying_apple,
+            "queue": [_queued_command(a, i == 0, game_state) for i, a in enumerate(queue)],
+        })
+        locations[name] = _position_to_tile(agent.position, game_state)
+
+    entities = []
+    entity_tiles: dict[str, Tile] = {}
+    for y in range(game_state.height):
+        for x in range(game_state.width):
+            tile = Tile(x, y)
+            tile_state = game_state.tile_states[x + y * game_state.width]
+            kinds = [STRUCTURE_KINDS.get(tile_state.tile_type), OVERLAY_KINDS.get(tile_state.tile_overlay)]
+            for kind in filter(None, kinds):
+                entity_id = "castle" if kind == "castle" else f"{kind}_{tile_to_cell(tile)}"
+                entities.append({"id": entity_id, "kind": kind, "targeted_by": []})
+                entity_tiles[entity_id] = tile
+    locations.update(entity_tiles)
+
+    proximity = {
+        a: [b for b, b_tile in locations.items()
+            if b != a and max(abs(a_tile.x - b_tile.x), abs(a_tile.y - b_tile.y)) <= 1]
+        for a, a_tile in locations.items()
+    }
+
+    state = {
+        "request": {"id": "0", "text": text},
+        "game": {"time_elapsed_s": 0, "time_remaining_s": 0, "points": game_state.points},
+        "ants": ants,
+        "entities": entities,
+        "proximity": proximity,
+        "events": [],
+        "memory": {"notes": "", "recent_exchanges": []},
+    }
+    return state, entity_tiles
+
+def _free_neighbor(tile: Tile, game_state: GameState) -> Tile | None:
+    for y in range(max(tile.y - 1, 0), min(tile.y + 2, game_state.height)):
+        for x in range(max(tile.x - 1, 0), min(tile.x + 2, game_state.width)):
+            tile_state = game_state.tile_states[x + y * game_state.width]
+            if tile_state.tile_type == TileType.EMPTY and tile_state.tile_overlay == TileOverlay.NONE:
+                return Tile(x, y)
+    return None
+
+def output_to_actions(out: dict, entity_tiles: dict[str, Tile], game_state: GameState) -> list[tuple[int, str, list[AgentAction]]]:
+    """
+    Translates validated LLM orders into a (agent id, mode, actions) tuple per ant per order.
+
+    Raises:
+        ValueError: If a step can't be placed on the map.
+    """
+    tile_width, tile_height = _tile_size(game_state)
+    translated = []
+    for order in out["orders"]:
+        steps: list[tuple[str, Tile]] = []
+        last_built = None
+        for step in order["steps"]:
+            action, target = step["action"], step["target"]
+            if target == "just_built":
+                tile = last_built
+            elif target in entity_tiles:
+                tile = entity_tiles[target]
+            else:
+                tile = cell_to_tile(target)
+            if action.startswith("build_"):
+                if target in entity_tiles:
+                    tile = _free_neighbor(tile, game_state)
+                    if tile is None:
+                        raise ValueError(f"{action}: no empty tile next to {target}")
+                last_built = tile
+            steps.append((action, tile))
+
+        for name in order["subjects"]:
+            agent_id = AGENT_NAMES.index(name)
+            actions = []
+            for action, tile in steps:
+                goal = tile.center(tile_width, tile_height) if action == "move" else tile
+                actions.append(AgentAction(agent_id=agent_id, action=ACTION_TYPES[action](goal)))
+            translated.append((agent_id, order["mode"], actions))
+    return translated

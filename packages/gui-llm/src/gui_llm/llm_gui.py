@@ -2,7 +2,9 @@
 A simple GUI for LLM-based multi-agent control
 """
 
+import html
 import json
+import threading
 from pathlib import Path
 
 import pygame
@@ -12,7 +14,20 @@ from common.game_state import GameState
 from common.publisher import Publisher
 from common.subscriber import Subscriber
 from dotenv import load_dotenv
-from gui_common.gui import GUI
+from gui_common.gui import AGENT_NAMES, GUI
+
+from gui_llm.parsing import (
+    build_llm_input,
+    cmd_id,
+    output_to_actions,
+    parse_json_lenient,
+    parse_json_strict,
+    reference_errors,
+    schema_errors,
+)
+
+# The number of attempts the LLM gets to produce a valid response
+MAX_LLM_ATTEMPTS: int = 2
 
 
 class LLMGui(GUI):
@@ -29,10 +44,10 @@ class LLMGui(GUI):
         self.gui_manager = pygame_gui.UIManager((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         self.current_prompt: str = ""
         self.events = []
-        self.prompt_history: list[str] = []
-        self.response_history: list[str] = []
+        self.prompt_history: list[str] = []  # unused for now
+        self.response_history: list[str] = []  # unused for now
 
-        # THe log of previous chat messages, scrollable
+        # The log of previous chat messages, scrollable
         self.chat_log = pygame_gui.elements.UITextBox(
             html_text="<i>Welcome to the Age of Ants!</i><br>",
             relative_rect=pygame.Rect(10, 50, self.SIDEBAR_WIDTH - 10, self.SIDEBAR_HEIGHT - 300),
@@ -59,10 +74,17 @@ class LLMGui(GUI):
         self.client = Anthropic()  # reads ANTHROPIC_API_KEY
         self.base_kwargs = {
             "model":"claude-haiku-5-5",
-            "max_tokens":1500,
+            "max_tokens":4000,
         }
+        # Set while a request is in flight; the worker hands its outcome back through llm_result
+        self.llm_busy: bool = False
+        self.llm_result: dict | None = None
 
     def handle_input(self, event: pygame.event.Event, game_state: GameState | None):
+        """
+        Handling all pygame window events.
+        For LLM GUI, we're just trying to capture whenever the user submits something to the LLM. 
+        """
         if event.type == pygame.QUIT:
             self.running = False
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED and event.ui_element == self.entry:
@@ -75,29 +97,134 @@ class LLMGui(GUI):
             and not (event.mod & pygame.KMOD_SHIFT)
         ):
             self._submit()
+            return  # Don't forward the key, the text box would add a newline
         self.gui_manager.process_events(event)
 
     def tick(self, game_state: GameState):
-        for agent_state in game_state.agent_states:
-            # Pop the most recent action if the agent is no longer busy
-            if not agent_state.busy and self.agent_action_queue[agent_state.id]:
-                self.agent_action_queue[agent_state.id].pop(0)
+        """
+        Every tick
+        1. Check for llm completion
+        2. Pop from the queue if finished
+        3. Draw the GUI
+        """
+        # Parse LLM output
+        if self.llm_result is not None:
+            result, self.llm_result = self.llm_result, None
+            self._handle_llm_result(result)
+        # This pop code is broken, shit's getting popped immediately
+        #for agent_state in game_state.agent_states:
+        #    if not agent_state.busy and self.agent_action_queue[agent_state.id]:
+        #        self.agent_action_queue[agent_state.id].pop(0)
+        # GUI
         self.gui_manager.update(self.clock.get_time() / 1000.0)
         self.gui_manager.draw_ui(self.screen)
 
     def _post_message(self, sender: str, message: str):
-        self.chat_log.html_text += f"<b>{sender}:</b> {message}<br>"
-        self.chat_log.rebuild()
+        """
+        Append a message to the chat log.
+        """
+        self.chat_log.append_html_text(f"<b>{sender}:</b> {html.escape(message)}<br>")
 
     def _submit(self):
+        """
+        Remit a command to the LLM.
+        """
         message = self.entry.get_text().strip()
-        if message:
-            self._post_message("You", message)
-            self.prompt_history.append(message)
-            self.entry.set_text("")
+        if not message:
+            pass
+        else:
+            if self.game_state is None:
+                self._post_message("LLM", "Still waiting for the game to start.")
+            elif self.llm_busy:
+                self._post_message("LLM", "Still working on your last order.")
+            else:
+                self._post_message("You", message)
+                self.prompt_history.append(message)
+                self.entry.set_text("")
 
-            # TODO: Get the response from the LLM and add it to the response history
-            response = f"Response to: {message}"
-            self.response_history.append(response)
-            self._post_message("LLM", response)
+                state, entity_tiles = build_llm_input(message, self.game_state, self.agent_action_queue)
+                self.llm_busy = True
+                threading.Thread(
+                    target=self._query_llm,
+                    args=(state, entity_tiles, self.game_state),
+                    daemon=True,
+                ).start()
         self.entry.focus()
+
+    def _query_llm(self, state: dict, entity_tiles: dict, game_state: GameState):
+        """
+        Proper usage: raise llm_busy=True, then run this on a thread.
+        This just queries the LLM asynchronously (should I use promises?).
+        Once a return occurs, tick() will parse it on the next frame.
+        """
+        try:
+            messages = [{"role": "user", "content": json.dumps(state)}]
+            for _ in range(MAX_LLM_ATTEMPTS):
+                response = self.client.messages.create(
+                    **self.base_kwargs,
+                    system=self.system_prompt,
+                    messages=messages,
+                )
+                text = "".join(block.text for block in response.content if block.type == "text")
+                self.response_history.append(text)
+                out, actions, errors = self._parse_llm_response(text, state, entity_tiles, game_state)
+                if not errors:
+                    self.llm_result = {"out": out, "actions": actions}
+                    return
+                messages.append({"role": "assistant", "content": response.content})
+                messages.append({
+                    "role": "user",
+                    "content": "Your response was rejected. Respond again with the corrected JSON object only. Errors:\n"
+                        + "\n".join(errors),
+                })
+            self.llm_result = {"error": "I couldn't turn that into a valid order: " + "; ".join(errors)}
+        except Exception as e:  # Anything uncaught would die silently on this thread
+            self.llm_result = {"error": f"The LLM request failed: {e}"}
+        finally:
+            self.llm_busy = False
+
+    def _parse_llm_response(self, text: str, state: dict, entity_tiles: dict, game_state: GameState):
+        """
+        Returns:
+            The parsed output, its translated actions, and why it was rejected (if it was).
+        """
+        out = parse_json_strict(text)
+        if out is None:
+            out = parse_json_lenient(text)
+        if out is None:
+            return None, None, ["The response is not a JSON object."]
+        errors = schema_errors(out, self.output_schema) or reference_errors(state, out)
+        if errors:
+            return out, None, errors
+        try:
+            return out, output_to_actions(out, entity_tiles, game_state), []
+        except ValueError as e:
+            return out, None, [str(e)]
+
+    def _handle_llm_result(self, result: dict):
+        """
+        Turns LLM output into actions for the ants.
+        """
+        if "error" in result:
+            self._post_message("LLM", result["error"])
+            return
+
+        out = result["out"]
+        for cancel in out["cancels"]:
+            for name in cancel["subjects"]:
+                queue = self.agent_action_queue[AGENT_NAMES.index(name)]
+                if cancel["scope"] == "all":
+                    queue.clear()
+                elif cancel["scope"] == "current":
+                    del queue[:1]
+                else:
+                    queue[:] = [action for action in queue if cmd_id(action) not in cancel["command_ids"]]
+        for agent_id, mode, actions in result["actions"]:
+            if mode == "replace":
+                self.agent_action_queue[agent_id] = actions
+            else:
+                self.agent_action_queue[agent_id].extend(actions)
+
+        self._post_message("LLM", out["summary"])
+        for unhandled in out["unhandled"]:
+            self._post_message("LLM", f"Skipped: {unhandled}")
