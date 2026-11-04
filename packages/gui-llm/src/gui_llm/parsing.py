@@ -202,10 +202,15 @@ def _queued_command(agent_action: AgentAction, active: bool, game_state: GameSta
         "status": "active" if active else "queued",
     }
 
+def entity_id(kind: str, tile: Tile) -> str:
+    return "castle" if kind == "castle" else f"{kind}_{tile_to_cell(tile)}"
+
 def build_llm_input(
     text: str,
     game_state: GameState,
     queues: list[list[AgentAction]],
+    events: list[dict],
+    memory: dict,
 ) -> tuple[dict, dict[str, Tile], dict[str, Tile]]:
     """
     Snapshots the game as the input_schema.json object the LLM expects.
@@ -235,9 +240,9 @@ def build_llm_input(
             tile_state = game_state.tile_states[x + y * game_state.width]
             kinds = [STRUCTURE_KINDS.get(tile_state.tile_type), OVERLAY_KINDS.get(tile_state.tile_overlay)]
             for kind in filter(None, kinds):
-                entity_id = "castle" if kind == "castle" else f"{kind}_{tile_to_cell(tile)}"
-                entities.append({"id": entity_id, "kind": kind, "targeted_by": []})
-                entity_tiles[entity_id] = tile
+                symbol = entity_id(kind, tile)
+                entities.append({"id": symbol, "kind": kind, "targeted_by": []})
+                entity_tiles[symbol] = tile
     locations.update(entity_tiles)
 
     proximity = {
@@ -248,12 +253,12 @@ def build_llm_input(
 
     state = {
         "request": {"id": "0", "text": text},
-        "game": {"time_elapsed_s": 0, "time_remaining_s": 0, "points": game_state.points},
+        "game": {"points": game_state.points},
         "ants": ants,
         "entities": entities,
         "proximity": proximity,
-        "events": [],
-        "memory": {"notes": "", "recent_exchanges": []},
+        "events": events,
+        "memory": memory,
     }
     return state, entity_tiles, locations
 

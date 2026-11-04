@@ -5,6 +5,7 @@ A simple GUI for LLM-based multi-agent control
 import html
 import json
 import threading
+import time
 from pathlib import Path
 
 import pygame
@@ -16,6 +17,7 @@ from common.subscriber import Subscriber
 from dotenv import load_dotenv
 from gui_common.gui import AGENT_NAMES, GUI
 
+from gui_llm.memory import EventLog, Memory
 from gui_llm.parsing import (
     build_llm_input,
     cmd_id,
@@ -49,6 +51,8 @@ class LLMGui(GUI):
         self.events = []
         self.prompt_history: list[str] = []  # unused for now
         self.response_history: list[str] = []  # unused for now
+        self.event_log = EventLog()
+        self.memory = Memory()
 
         # The log of previous chat messages, scrollable
         self.chat_log = pygame_gui.elements.UITextBox(
@@ -106,10 +110,12 @@ class LLMGui(GUI):
     def tick(self, game_state: GameState):
         """
         Every tick
-        1. Check for llm completion
-        2. Pop from the queue if finished
-        3. Draw the GUI
+        1. Log what changed in the game
+        2. Check for llm completion
+        3. Pop from the queue if finished
+        4. Draw the GUI
         """
+        self.event_log.observe(game_state, time.monotonic())
         # Parse LLM output
         if self.llm_result is not None:
             result, self.llm_result = self.llm_result, None
@@ -138,14 +144,21 @@ class LLMGui(GUI):
         else:
             if self.game_state is None:
                 self._post_message("LLM", "Still waiting for the game to start.")
-            elif self.llm_busy:
+            elif self.llm_busy or self.llm_result is not None:  # A waiting result isn't in memory yet
                 self._post_message("LLM", "Still working on your last order.")
             else:
                 self._post_message("You", message)
                 self.prompt_history.append(message)
                 self.entry.set_text("")
 
-                state, entity_tiles, locations = build_llm_input(message, self.game_state, self.agent_action_queue)
+                now = time.monotonic()
+                state, entity_tiles, locations = build_llm_input(
+                    message,
+                    self.game_state,
+                    self.agent_action_queue,
+                    self.event_log.recent(now),
+                    self.memory.snapshot(now),
+                )
                 self.llm_busy = True
                 threading.Thread(
                     target=self._query_llm,
@@ -188,7 +201,7 @@ class LLMGui(GUI):
                 self.response_history.append(text)
                 out, actions, errors = self._parse_llm_response(text, state, entity_tiles, game_state)
                 if not errors:
-                    self.llm_result = {"out": out, "actions": actions}
+                    self.llm_result = {"out": out, "actions": actions, "user_text": state["request"]["text"]}
                     return
                 if attempts >= MAX_LLM_ATTEMPTS:
                     self.llm_result = {"error": "I couldn't turn that into a valid order: " + "; ".join(errors)}
@@ -251,6 +264,7 @@ class LLMGui(GUI):
             return
 
         out = result["out"]
+        self.memory.record(result["user_text"], out, time.monotonic())
         for cancel in out["cancels"]:
             for name in cancel["subjects"]:
                 queue = self.agent_action_queue[AGENT_NAMES.index(name)]

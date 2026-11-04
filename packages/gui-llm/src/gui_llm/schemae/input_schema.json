@@ -19,10 +19,8 @@
     "game": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["time_elapsed_s", "time_remaining_s", "points"],
+      "required": ["points"],
       "properties": {
-        "time_elapsed_s": { "type": "number", "minimum": 0 },
-        "time_remaining_s": { "type": "number", "minimum": 0 },
         "points": { "type": "integer", "minimum": 0 }
       }
     },
@@ -53,7 +51,7 @@
       "type": "array",
       "maxItems": 10,
       "items": { "$ref": "#/$defs/event" },
-      "description": "Most recent first. Up to 10 events from roughly the last 60 s."
+      "description": "Most recent first. The last 10 events, however old."
     },
 
     "memory": {
