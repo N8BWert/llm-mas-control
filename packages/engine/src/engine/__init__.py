@@ -41,6 +41,8 @@ OFFSCREEN_LOCATIONS: list[np.ndarray] = [
     np.array([1.2, -1.1, np.pi/2]),
     np.array([1.5, -1.1, np.pi/2]),
 ]
+# The number of ticks the game will run for
+TOTAL_TICKS: int = 10 * 60 * 30 # 10 minutes at 30 ticks per second
 
 
 def parse_arguments() -> tuple[tuple[str, int], tuple[str, int], str, int]:
@@ -82,14 +84,13 @@ def main():
     level: Level
     with open(LEVELS_DIR + level_name, "r") as f:
         level = Level.from_json(f.read())
-    print(level)
     initial_conditions = generate_start_poses(level, seed)
     publisher = SocketPublisher(send_address)
     subscriber = SocketSubscriber(bind_address, AgentActionRequest)
     robotarium = Robotarium(
         number_of_robots=level.max_agents,
         initial_conditions=initial_conditions,
-        show_figure=True,
+        show_figure=False,
         skip_initialization=True,
         show_arena_boundaries=False,
         sim_in_real_time=True,
@@ -100,8 +101,20 @@ def main():
         robotarium,
         level
     )
-    while True:
+    for _ in range(TOTAL_TICKS):
         e.tick()
+
+    points, times_eaten, num_agents, num_farms, num_quarries, idle_ticks, points_over_time = e.report()
+    print(f"Game over! Points: {points}, Number of Ants: {num_agents}, Times eaten: {times_eaten}, Idle Percentages: {[round(tick / TOTAL_TICKS * 100, 2) for tick in idle_ticks]}")
+    with open("game_results.txt", "w") as f:
+        f.write(f"Points: {points}\n")
+        f.write(f"Times eaten: {times_eaten}\n")
+        f.write(f"Idle Percentages: {[round(tick / TOTAL_TICKS * 100, 2) for tick in idle_ticks]}\n")
+        f.write(f"Number of Ants: {num_agents}\n")
+        f.write(f"Number of Farms: {num_farms}\n")
+        f.write(f"Number of Quarries: {num_quarries}\n")
+    points_over_time = np.array(points_over_time)
+    np.save("points_over_time.npy", points_over_time)
 
 
 if __name__ == "__main__":

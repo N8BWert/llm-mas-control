@@ -19,7 +19,7 @@ class BuildQuarryAction(Action, Convertible):
     # The number of ticks required to build a quarry
     TIME_TO_BUILD: ClassVar[int] = 30
     # The number of points required to build a quarry
-    POINTS_TO_BUILD: ClassVar[int] = 100
+    POINTS_TO_BUILD: ClassVar[int] = 750
 
     tile: Tile
 

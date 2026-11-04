@@ -17,7 +17,7 @@ class FarmAction(Action, Convertible):
     Action to farm at a given tile 
     """
     # The number of ticks required to farm
-    TIME_TO_FARM: ClassVar[int] = 30
+    TIME_TO_FARM: ClassVar[int] = 150
 
     tile: Tile
 

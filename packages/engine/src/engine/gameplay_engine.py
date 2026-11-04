@@ -29,7 +29,6 @@ from common.tile import Tile, TileOverlay, TileState, TileType
 from matplotlib.axes import Axes
 from PIL import Image
 from rps.robotarium import Robotarium
-from rps.utilities.barrier_certificates import create_si_barrier_certificate
 from rps.utilities.transformations import create_si_to_uni_mapping
 
 from engine.barrier_certificate import CentralizedCircularBarrier
@@ -38,7 +37,7 @@ from engine.input_system import InputSystem
 from engine.level import EventType, Level
 
 # The number of points you gain per apple
-POINTS_PER_APPLE: int = 500
+POINTS_PER_APPLE: int = 40
 # The assets directory
 ASSETS_DIR: str = f"{os.path.dirname(os.path.abspath(__file__))}/../../../../assets/sprites/"
 
@@ -74,6 +73,10 @@ class GameplayEngine:
 
         # The number of points the player has
         self.points = level.start_points
+        # The number of points the player has had over time (updated at each event)
+        self.points_over_time: list[tuple[int, int]] = [(0, self.points)]
+        # The number of times an ant was eaten by a bird
+        self.times_eaten = 0
 
         # The tiles in the game engine
         self.tiles_x = level.width
@@ -104,6 +107,8 @@ class GameplayEngine:
         self.input_system = InputSystem(subscriber)
         # The current action for each agent and how many ticks they have been executing it
         self.current_actions: list[list[AgentAction, int] | None] = [None] * self.max_agents
+        # The number of ticks each agent was idle for
+        self.idle_ticks: list[int] = [0 for _ in range(self.max_agents)]
         # The publisher for broadcasting the current game state
         self.game_state_publisher = publisher
 
@@ -161,6 +166,7 @@ class GameplayEngine:
                     self.spawning_agents.remove(robot_id)
                 continue
             if self.current_actions[robot_id] is None:
+                self.idle_ticks[robot_id] += 1
                 continue
             action, _ = self.current_actions[robot_id]
             # TODO: This match-case statement is super ugly.  I should probably clean it up at some point
@@ -173,6 +179,7 @@ class GameplayEngine:
                             # Wait until we have the necessary points to build the farm
                             if self.points < BuildFarmAction.POINTS_TO_BUILD:
                                 self.current_actions[robot_id][1] -= 1
+                                self.idle_ticks[robot_id] += 1
                                 continue
                             # The action is finished
                             self._build_farm(farm_tile)
@@ -186,6 +193,7 @@ class GameplayEngine:
                         if action.time_left(self.current_actions[robot_id][1]) == 0:
                             if self.points < BuildHouseAction.POINTS_TO_BUILD:
                                 self.current_actions[robot_id][1] -= 1
+                                self.idle_ticks[robot_id] += 1
                                 continue
                             # The action is finished
                             self._build_house(house_tile)
@@ -199,6 +207,7 @@ class GameplayEngine:
                         if action.time_left(self.current_actions[robot_id][1]) == 0:
                             if self.points < BuildQuarryAction.POINTS_TO_BUILD:
                                 self.current_actions[robot_id][1] -= 1
+                                self.idle_ticks[robot_id] += 1
                                 continue
                             # The action is finished
                             self._build_quarry(quarry_tile)
@@ -210,6 +219,7 @@ class GameplayEngine:
                         # Short circuit if we're not carrying anything
                         if not self.agent_carrying[robot_id]:
                             self.current_actions[robot_id] = None
+                            self.idle_ticks[robot_id] += 1
                             continue
 
                         # Increment the drop action counter
@@ -225,6 +235,7 @@ class GameplayEngine:
                         # Short circuit if we're not at a farm tile
                         if self.tiles[farm_tile.x + self.tiles_x * farm_tile.y].tile_type != TileType.FARM:
                             self.current_actions[robot_id] = None
+                            self.idle_ticks[robot_id] += 1
                             continue
 
                         # Increment the farm action counter
@@ -240,6 +251,7 @@ class GameplayEngine:
                         # Short circuit if we're not at a quarry tile
                         if self.tiles[mine_tile.x + self.tiles_x * mine_tile.y].tile_type != TileType.QUARRY:
                             self.current_actions[robot_id] = None
+                            self.idle_ticks[robot_id] += 1
                             continue
 
                         # Increment the mine action counter
@@ -255,6 +267,7 @@ class GameplayEngine:
                         # Short circuit if there's nothing on the tile to pickup
                         if self.tiles[pickup_tile.x + self.tiles_x * pickup_tile.y].tile_overlay != TileOverlay.APPLE:
                             self.current_actions[robot_id] = None
+                            self.idle_ticks[robot_id] += 1
                             continue
 
                         self.current_actions[robot_id][1] += 1
@@ -272,6 +285,7 @@ class GameplayEngine:
                     dxi[:, robot_id] = self.controller.apply(x_si[:, robot_id], goal_position)
                     if np.linalg.norm(x_si[:, robot_id] - goal_position) < MoveAction.TOLERANCE:
                         self.current_actions[robot_id] = None
+                        self.idle_ticks[robot_id] += 1
                 case _:
                     pass
 
@@ -297,6 +311,11 @@ class GameplayEngine:
         # Publish the current state of the game
         self._publish_game_state(x)
         # print(f"Elapsed (TICK - {self.current_tick}): {time.time() - start}")
+
+    def report(self) -> tuple[int, int, int, int, int, list[int], list[tuple[int, int]]]:
+        num_farms = sum(1 for tile in self.tiles if tile.tile_type == TileType.FARM)
+        num_quarries = sum(1 for tile in self.tiles if tile.tile_type == TileType.QUARRY)
+        return self.points, self.times_eaten, self.agents, num_farms, num_quarries, self.idle_ticks, self.points_over_time
 
     def _si_to_tile(self, x_si: np.ndarray) -> list[Tile]:
         """
@@ -373,6 +392,7 @@ class GameplayEngine:
                 self.respawning_agents.add(agent_id)
                 self.current_actions[agent_id] = None
                 self.agent_carrying[agent_id] = False
+                self.times_eaten += 1
 
     def _check_water_tiles(self, x_tiles: list[Tile], dx_si: np.ndarray):
         """
@@ -408,6 +428,7 @@ class GameplayEngine:
             tile_overlay=TileOverlay.NONE
         )
         self.points -= BuildFarmAction.POINTS_TO_BUILD
+        self.points_over_time.append((self.current_tick, self.points))
         self.tiles_updated = True
 
     def _build_house(self, house_tile: Tile):
@@ -424,6 +445,7 @@ class GameplayEngine:
             tile_overlay=TileOverlay.NONE
         )
         self.points -= BuildHouseAction.POINTS_TO_BUILD
+        self.points_over_time.append((self.current_tick, self.points))
         self.agents += 1
         self.spawning_agents.add(self.agents - 1)
         self.tiles_updated = True
@@ -442,6 +464,7 @@ class GameplayEngine:
             tile_overlay=TileOverlay.NONE
         )
         self.points -= BuildQuarryAction.POINTS_TO_BUILD
+        self.points_over_time.append((self.current_tick, self.points))
         self.tiles_updated = True
 
     def _farm(self, farm_tile: Tile):
@@ -481,6 +504,7 @@ class GameplayEngine:
     def _drop_item(self, robot_id: int, drop_tile: Tile):
         if drop_tile == self.castle_tile:
             self.points += POINTS_PER_APPLE
+            self.points_over_time.append((self.current_tick, self.points))
             self.agent_carrying[robot_id] = False
         elif self.tiles[drop_tile.x + self.tiles_x * drop_tile.y].tile_overlay == TileOverlay.NONE:
             self.tiles[drop_tile.x + self.tiles_x * drop_tile.y].tile_overlay = TileOverlay.APPLE

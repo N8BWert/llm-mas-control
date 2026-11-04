@@ -30,3 +30,7 @@ run-rts:
 
 run-llm:
     uv run gui-llm
+
+make-levels:
+    uv run python generate_level.py assets/levels/level1.json
+    uv run python generate_level.py --castle_tile 8,5 assets/levels/level2.json

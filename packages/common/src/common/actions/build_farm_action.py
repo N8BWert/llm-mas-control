@@ -19,7 +19,7 @@ class BuildFarmAction(Action, Convertible):
     # The number of ticks required to build a farm
     TIME_TO_BUILD: ClassVar[int] = 15
     # The number of points required to build a farm
-    POINTS_TO_BUILD: ClassVar[int] = 100
+    POINTS_TO_BUILD: ClassVar[int] = 500
 
     tile: Tile
 
