@@ -1,4 +1,5 @@
 import json
+import math
 import re
 
 from common.agent_action import (
@@ -164,6 +165,15 @@ STRUCTURE_KINDS = {
 }
 OVERLAY_KINDS = {TileOverlay.APPLE: "apple", TileOverlay.BIRD: "bird"}
 
+# How far apart two objects can be and still count as "close".
+PROXIMITY_RADIUS = 3.5
+
+def tile_distance(a: Tile, b: Tile) -> float:
+    """
+    The Euclidean distance between two tiles, in tiles.
+    """
+    return math.hypot(a.x - b.x, a.y - b.y)
+
 def tile_to_cell(tile: Tile) -> str:
     return f"{GRID_COLUMNS[tile.x]}{tile.y + 1}"
 
@@ -192,12 +202,17 @@ def _queued_command(agent_action: AgentAction, active: bool, game_state: GameSta
         "status": "active" if active else "queued",
     }
 
-def build_llm_input(text: str, game_state: GameState, queues: list[list[AgentAction]]) -> tuple[dict, dict[str, Tile]]:
+def build_llm_input(
+    text: str,
+    game_state: GameState,
+    queues: list[list[AgentAction]],
+) -> tuple[dict, dict[str, Tile], dict[str, Tile]]:
     """
     Snapshots the game as the input_schema.json object the LLM expects.
 
     Returns:
-        The LLM input, and the tile of each entity id in it (needed to translate the output).
+        The LLM input, the tile of each entity id in it (needed to translate the output),
+        and the tile of each ant and entity id in it (needed to answer tool calls).
     """
     ants = []
     locations: dict[str, Tile] = {}
@@ -227,7 +242,7 @@ def build_llm_input(text: str, game_state: GameState, queues: list[list[AgentAct
 
     proximity = {
         a: [b for b, b_tile in locations.items()
-            if b != a and max(abs(a_tile.x - b_tile.x), abs(a_tile.y - b_tile.y)) <= 1]
+            if b != a and tile_distance(a_tile, b_tile) <= PROXIMITY_RADIUS]
         for a, a_tile in locations.items()
     }
 
@@ -240,7 +255,7 @@ def build_llm_input(text: str, game_state: GameState, queues: list[list[AgentAct
         "events": [],
         "memory": {"notes": "", "recent_exchanges": []},
     }
-    return state, entity_tiles
+    return state, entity_tiles, locations
 
 def _free_neighbor(tile: Tile, game_state: GameState) -> Tile | None:
     for y in range(max(tile.y - 1, 0), min(tile.y + 2, game_state.height)):

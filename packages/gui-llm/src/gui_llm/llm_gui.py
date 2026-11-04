@@ -25,9 +25,12 @@ from gui_llm.parsing import (
     reference_errors,
     schema_errors,
 )
+from gui_llm.tools import TOOLS, execute_tool
 
 # The number of attempts the LLM gets to produce a valid response
 MAX_LLM_ATTEMPTS: int = 2
+# The number of turns the LLM can spend calling tools before it must answer
+MAX_TOOL_TURNS: int = 4
 
 
 class LLMGui(GUI):
@@ -142,16 +145,16 @@ class LLMGui(GUI):
                 self.prompt_history.append(message)
                 self.entry.set_text("")
 
-                state, entity_tiles = build_llm_input(message, self.game_state, self.agent_action_queue)
+                state, entity_tiles, locations = build_llm_input(message, self.game_state, self.agent_action_queue)
                 self.llm_busy = True
                 threading.Thread(
                     target=self._query_llm,
-                    args=(state, entity_tiles, self.game_state),
+                    args=(state, entity_tiles, locations, self.game_state),
                     daemon=True,
                 ).start()
         self.entry.focus()
 
-    def _query_llm(self, state: dict, entity_tiles: dict, game_state: GameState):
+    def _query_llm(self, state: dict, entity_tiles: dict, locations: dict, game_state: GameState):
         """
         Proper usage: raise llm_busy=True, then run this on a thread.
         This just queries the LLM asynchronously (should I use promises?).
@@ -159,29 +162,67 @@ class LLMGui(GUI):
         """
         try:
             messages = [{"role": "user", "content": json.dumps(state)}]
-            for _ in range(MAX_LLM_ATTEMPTS):
+            tool_turns = 0
+            attempts = 0
+            # Every request either spends a tool turn or a validation attempt
+            for _ in range(MAX_TOOL_TURNS + MAX_LLM_ATTEMPTS):
                 response = self.client.messages.create(
                     **self.base_kwargs,
                     system=self.system_prompt,
                     messages=messages,
+                    tools=TOOLS,
+                    tool_choice={"type": "auto" if tool_turns < MAX_TOOL_TURNS else "none"},
                 )
+                messages.append({"role": "assistant", "content": response.content})
+
+                if response.stop_reason == "tool_use":
+                    tool_turns += 1
+                    messages.append({"role": "user", "content": self._run_tools(response, state, locations, game_state)})
+                    continue
+                if response.stop_reason != "end_turn":
+                    self.llm_result = {"error": f"The LLM stopped early ({response.stop_reason})."}
+                    return
+
+                attempts += 1
                 text = "".join(block.text for block in response.content if block.type == "text")
                 self.response_history.append(text)
                 out, actions, errors = self._parse_llm_response(text, state, entity_tiles, game_state)
                 if not errors:
                     self.llm_result = {"out": out, "actions": actions}
                     return
-                messages.append({"role": "assistant", "content": response.content})
+                if attempts >= MAX_LLM_ATTEMPTS:
+                    self.llm_result = {"error": "I couldn't turn that into a valid order: " + "; ".join(errors)}
+                    return
                 messages.append({
                     "role": "user",
                     "content": "Your response was rejected. Respond again with the corrected JSON object only. Errors:\n"
                         + "\n".join(errors),
                 })
-            self.llm_result = {"error": "I couldn't turn that into a valid order: " + "; ".join(errors)}
+            self.llm_result = {"error": "The LLM didn't finish answering."}
         except Exception as e:  # Anything uncaught would die silently on this thread
             self.llm_result = {"error": f"The LLM request failed: {e}"}
         finally:
             self.llm_busy = False
+
+    def _run_tools(self, response, state: dict, locations: dict, game_state: GameState) -> list[dict]:
+        """
+        Runs every tool call in a response.
+
+        Returns:
+            One tool_result block per call, to send back together in a single message.
+        """
+        results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                content, is_error = execute_tool(block.name, block.input, state, locations, game_state)
+                self.response_history.append(json.dumps({"tool": block.name, "input": block.input, "result": content}))
+                results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": content,
+                    "is_error": is_error,
+                })
+        return results
 
     def _parse_llm_response(self, text: str, state: dict, entity_tiles: dict, game_state: GameState):
         """
