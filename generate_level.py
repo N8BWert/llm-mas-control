@@ -178,7 +178,7 @@ def main():
 
     level = Level(
         events=events,
-        water_tiles=generate_water_tiles(width, height, Tile(*castle_tile), num_water_tiles),
+        water_tiles=generate_water_tiles(width, height, castle_tile, num_water_tiles),
         width=width,
         height=height,
         start_agents=start_agents,
