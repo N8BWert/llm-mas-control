@@ -52,5 +52,7 @@ class Level:
     max_agents: int = 10
     # The tile for the castle
     castle_tile: Tile = Tile(3, 3)
+    # The tile for the starting farm
+    starting_farm_tile: Tile = Tile(5, 5)
     # The number of points for the user to start with
     start_points: int = 100

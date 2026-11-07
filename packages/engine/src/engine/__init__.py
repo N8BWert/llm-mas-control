@@ -41,9 +41,11 @@ OFFSCREEN_LOCATIONS: list[np.ndarray] = [
     np.array([1.2, -1.1, np.pi/2]),
     np.array([1.5, -1.1, np.pi/2]),
 ]
+# The number of ticks the game will run for
+TOTAL_TICKS: int = 10 * 60 * 30 # 10 minutes at 30 ticks per second
 
 
-def parse_arguments() -> tuple[tuple[str, int], tuple[str, int], str, int]:
+def parse_arguments() -> tuple[tuple[str, int], tuple[str, int], str, int, str]:
     parser = argparse.ArgumentParser(description="Run the game engine for Age of Ants.")
     parser.add_argument("--send-address", help="Address to send data to", type=str, default="localhost")
     parser.add_argument("--send-port", help="Port to send data to", type=int, default="8080")
@@ -51,8 +53,9 @@ def parse_arguments() -> tuple[tuple[str, int], tuple[str, int], str, int]:
     parser.add_argument("--bind-port", help="Port to bind to", type=int, default="8081")
     parser.add_argument("-l", "--level", help="The name of the level to run", type=str, default="easy_level.json")
     parser.add_argument("-s", "--seed", help="The random seed to use for the level", type=int, default=0)
+    parser.add_argument("output_directory", help="The output directory to write the game results to", type=str)
     args = parser.parse_args()
-    return (args.send_address, int(args.send_port)), (args.bind_address, int(args.bind_port)), args.level, args.seed
+    return (args.send_address, int(args.send_port)), (args.bind_address, int(args.bind_port)), args.level, args.seed, args.output_directory
 
 def generate_start_poses(level: Level, seed: int, spacing: float = 0.5, width: float = 3.0, height: float = 1.8) -> np.ndarray:
     """
@@ -78,18 +81,17 @@ def generate_start_poses(level: Level, seed: int, spacing: float = 0.5, width: f
     return poses
 
 def main():
-    send_address, bind_address, level_name, seed = parse_arguments()
+    send_address, bind_address, level_name, seed, output_directory = parse_arguments()
     level: Level
     with open(LEVELS_DIR + level_name, "r") as f:
         level = Level.from_json(f.read())
-    print(level)
     initial_conditions = generate_start_poses(level, seed)
     publisher = SocketPublisher(send_address)
     subscriber = SocketSubscriber(bind_address, AgentActionRequest)
     robotarium = Robotarium(
         number_of_robots=level.max_agents,
         initial_conditions=initial_conditions,
-        show_figure=True,
+        show_figure=False,
         skip_initialization=True,
         show_arena_boundaries=False,
         sim_in_real_time=True,
@@ -100,8 +102,22 @@ def main():
         robotarium,
         level
     )
-    while True:
+    for _ in range(TOTAL_TICKS):
         e.tick()
+
+    points, times_eaten, num_agents, num_farms, num_quarries, idle_ticks, points_over_time = e.report()
+    print(f"Game over! Points: {points}, Number of Ants: {num_agents}, Times eaten: {times_eaten}, Idle Percentages: {[round(tick / TOTAL_TICKS * 100, 2) for tick in idle_ticks]}")
+    os.makedirs(output_directory, exist_ok=True)
+    output_file = f"{output_directory}/game_results.txt"
+    with open(output_file, "w") as f:
+        f.write(f"Points: {points}\n")
+        f.write(f"Times eaten: {times_eaten}\n")
+        f.write(f"Idle Percentages: {[round(tick / TOTAL_TICKS * 100, 2) for tick in idle_ticks]}\n")
+        f.write(f"Number of Ants: {num_agents}\n")
+        f.write(f"Number of Farms: {num_farms}\n")
+        f.write(f"Number of Quarries: {num_quarries}\n")
+    points_over_time = np.array(points_over_time)
+    np.save(f"{output_directory}/points_over_time.npy", points_over_time)
 
 
 if __name__ == "__main__":

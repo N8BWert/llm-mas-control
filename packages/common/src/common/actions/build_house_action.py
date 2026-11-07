@@ -17,9 +17,9 @@ class BuildHouseAction(Action, Convertible):
     Action to build a house at a given tile 
     """
     # The number of ticks required to build a house
-    TIME_TO_BUILD: ClassVar[int] = 10
+    TIME_TO_BUILD: ClassVar[int] = 15
     # The number of points required to build a house
-    POINTS_TO_BUILD: ClassVar[int] = 100
+    POINTS_TO_BUILD: ClassVar[int] = 300
     
     tile: Tile
 

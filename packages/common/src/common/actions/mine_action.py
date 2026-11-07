@@ -17,7 +17,7 @@ class MineAction(Action, Convertible):
     Action to mine at a given tile 
     """
     # The number of ticks required to mine
-    TIME_TO_MINE: ClassVar[int] = 45
+    TIME_TO_MINE: ClassVar[int] = 105
 
     tile: Tile
 
