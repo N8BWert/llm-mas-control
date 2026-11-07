@@ -96,6 +96,7 @@ class GUI(ABC):
         self.agent_surfaces = self._load_agents()
         self.icon_surfaces = self._load_icons()
         self.agent_font = pygame.font.Font(None, 24)
+        self.points_font = pygame.font.Font(None, 48)
         self.selected_agents = set()
 
         self.running = False
@@ -236,12 +237,22 @@ class GUI(ABC):
         agent_surfaces: list[pygame.Surface] = []
 
         # Load base ant image
-        filename = f"Ant.png"
+        filename = "Ant.png"
         img = pygame.image.load(ASSETS_DIR + filename).convert_alpha()
         agent_surfaces.append(img)
 
         # Load ant with apple image
-        filename = f"AntWithApple.png"
+        filename = "AntWithApple.png"
+        img = pygame.image.load(ASSETS_DIR + filename).convert_alpha()
+        agent_surfaces.append(img)
+
+        # Load farmer ant
+        filename = "FarmerAnt.png"
+        img = pygame.image.load(ASSETS_DIR + filename).convert_alpha()
+        agent_surfaces.append(img)
+
+        # Load miner ant
+        filename = "MinerAnt.png"
         img = pygame.image.load(ASSETS_DIR + filename).convert_alpha()
         agent_surfaces.append(img)
 
@@ -355,7 +366,13 @@ class GUI(ABC):
 
         # Draw the agents
         for agent_state in game_state.agent_states:
-            surface = self.agent_surfaces[1] if agent_state.carrying_apple else self.agent_surfaces[0]
+            surface = self.agent_surfaces[0]
+            if agent_state.carrying_apple:
+                surface = self.agent_surfaces[1]
+            elif self.agent_action_queue[agent_state.id] and isinstance(self.agent_action_queue[agent_state.id][0].action, FarmAction):
+                surface = self.agent_surfaces[2]
+            elif self.agent_action_queue[agent_state.id] and isinstance(self.agent_action_queue[agent_state.id][0].action, MineAction):
+                surface = self.agent_surfaces[3]
             surface = pygame.transform.scale(surface, (self.ROBOT_WIDTH_PIXELS, self.ROBOT_HEIGHT_PIXELS))
             if -np.pi / 2 <= agent_state.orientation <= np.pi / 2:
                 # Flip the image if the agent is facing right
@@ -390,7 +407,7 @@ class GUI(ABC):
         sidebar_y = 0
 
         # Draw the points text
-        points_text = self.agent_font.render(f"Points: {points}", True, (255, 255, 255))
+        points_text = self.points_font.render(f"Points: {points}", True, (255, 255, 255))
         points_rect = points_text.get_rect(center=(sidebar_x + self.SIDEBAR_WIDTH // 2, sidebar_y + 30))
         self.screen.blit(points_text, points_rect)
 

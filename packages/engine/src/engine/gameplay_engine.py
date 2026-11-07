@@ -85,6 +85,7 @@ class GameplayEngine:
         self.tile_height = 2.0 / self.tiles_y
         self.tiles = [TileState(tile_type=TileType.EMPTY, tile_overlay=TileOverlay.NONE) for _ in range(self.tiles_x * self.tiles_y)]
         self.tiles[level.castle_tile.x + self.tiles_x * level.castle_tile.y] = TileState(tile_type=TileType.CASTLE, tile_overlay=TileOverlay.NONE)
+        self.tiles[level.starting_farm_tile.x + self.tiles_x * level.starting_farm_tile.y] = TileState(tile_type=TileType.FARM, tile_overlay=TileOverlay.NONE)
         for water_tile in level.water_tiles:
             self.tiles[water_tile.x + self.tiles_x * water_tile.y] = TileState(tile_type=TileType.WATER, tile_overlay=TileOverlay.NONE)
         self.draw_tiles = [None for _ in range(self.tiles_x * self.tiles_y)]
@@ -482,7 +483,7 @@ class GameplayEngine:
                             return
 
     def _mine(self, quarry_tile: Tile):
-        apples_to_spawn = 2
+        apples_to_spawn = 1
 
         # Try to spawn an apple in the quarry
         if self.tiles[quarry_tile.x + self.tiles_x * quarry_tile.y].tile_overlay == TileOverlay.NONE:

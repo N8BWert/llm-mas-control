@@ -5,8 +5,8 @@ Generate a level for the game (we'll adjust the parameters manually, but this is
 import argparse
 import random
 
-from engine.level import Event, EventType, Level
 from common.tile import Tile
+from engine.level import Event, EventType, Level
 
 # The spawn rates for the different tile overlay events (apples, bird_spawns, bird_lifespan)
 SPAWN_RATES: dict[str, tuple[int, int, int]] = {
@@ -163,12 +163,13 @@ def generate_bird_events(era_lengths: list[int], castle_tile: tuple[int, int], w
 def main():
     args = parse_args()
     width, height, start_agents, max_agents, start_points, num_water_tiles, castle_tile, era_lengths, output_file = args
+    starting_farm_tile = (width - castle_tile[0] - 1, height - castle_tile[1] - 1)
 
     # Generate the initial apples for the level (8 apples)
     initial_apples: list[tuple[int, int]] = []
     while len(initial_apples) < 8:
         position = (random.randint(0, width - 1), random.randint(0, height - 1))
-        if position not in initial_apples and position != castle_tile:
+        if position not in initial_apples and position != castle_tile and position != starting_farm_tile:
             initial_apples.append(position)
     initial_apple_events = [Event(tick=0, event_type=EventType.SPAWN_APPLE, tile=Tile(x, y)) for x, y in initial_apples]
 
@@ -184,6 +185,7 @@ def main():
         start_agents=start_agents,
         max_agents=max_agents,
         castle_tile=Tile(*castle_tile),
+        starting_farm_tile=Tile(*starting_farm_tile),
         start_points=start_points
     )
     # Save the level to a JSON file

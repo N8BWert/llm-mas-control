@@ -22,16 +22,27 @@ test target:
 format:
     uvx ruff check --select I --fix
 
-run level="tutorial":
+run-rts level="tutorial" output_directory="output":
     #!/usr/bin/env bash
     set -eou pipefail
 
-    uv run engine --level {{level}}.json &
+    uv run engine --level {{level}}.json {{output_directory}} &
     engine_pid=$!
     trap 'kill $engine_pid 2>/dev/null || true' EXIT
 
     uv run gui-rts
 
+run-llm level="tutorial" output_directory="output":
+    #!/usr/bin/env bash
+    set -eou pipefail
+
+    uv run engine --level {{level}}.json {{output_directory}} &
+    engine_pid=$!
+    trap 'kill $engine_pid 2>/dev/null || true' EXIT
+
+    uv run gui-llm 
+
 make-levels:
     uv run python generate_level.py assets/levels/level1.json
     uv run python generate_level.py --castle_tile 8,5 assets/levels/level2.json
+    uv run python generate_tutorial.py
