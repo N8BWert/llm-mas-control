@@ -91,7 +91,8 @@ def main():
     robotarium = Robotarium(
         number_of_robots=level.max_agents,
         initial_conditions=initial_conditions,
-        show_figure=False,
+        show_figure=True,
+        enable_safety=False,
         skip_initialization=True,
         show_arena_boundaries=False,
         sim_in_real_time=True,

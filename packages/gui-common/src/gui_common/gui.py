@@ -47,11 +47,11 @@ class GUI(ABC):
     can reuse components as much as possible 
     """
 
-    SCREEN_WIDTH: int = 2400
-    SCREEN_HEIGHT: int = 1200
+    SCREEN_WIDTH: int = 1850
+    SCREEN_HEIGHT: int = 1000
     WINDOW_TITLE: str = "Age of Ants"
-    GAME_WIDTH: int = 1600
-    GAME_HEIGHT: int = 970
+    GAME_WIDTH: int = 1400
+    GAME_HEIGHT: int = 800
     GAME_X_OFFSET: int = (SCREEN_WIDTH - GAME_WIDTH) // 2
     GAME_Y_OFFSET: int = 0
     GAME_PADDING: int = 10
