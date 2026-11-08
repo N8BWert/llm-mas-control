@@ -94,8 +94,8 @@ def reference_errors(state, out):
     if out["status"] == "ok":
         if out["refusal_reason"] is not None:
             errs.append("status ok but refusal_reason is set")
-        if not (out["cancels"] or out["orders"]):
-            errs.append("status ok but cancels and orders are both empty")
+        if not (out["cancels"] or out["orders"] or out["memory_notes"] is not None):
+            errs.append("status ok but cancels, orders and memory_notes are all empty")
     else:
         if out["refusal_reason"] is None:
             errs.append("status refused but refusal_reason is null")
