@@ -128,29 +128,23 @@
     "entity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "kind", "targeted_by"],
+      "required": ["id", "kind"],
       "properties": {
         "id": { "$ref": "#/$defs/symbol" },
-        "kind": { "enum": ["castle", "house", "farm", "quarry", "apple", "bird"] },
-        "targeted_by": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/ant_id" },
-          "description": "Ants that have this entity as the target of an active or queued command."
-        }
+        "kind": { "enum": ["castle", "house", "farm", "quarry", "apple", "bird"] }
       }
     },
     "event": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["seconds_ago", "type", "ant", "entity", "detail"],
+      "required": ["seconds_ago", "type", "ant", "entity"],
       "properties": {
         "seconds_ago": { "type": "number", "minimum": 0 },
         "type": {
-          "enum": ["apple_spawned", "apple_delivered", "bird_spawned", "ant_carried_off", "ant_respawned", "build_complete", "command_completed", "command_failed"]
+          "enum": ["apple_spawned", "apple_delivered", "bird_spawned", "ant_carried_off", "ant_respawned", "build_complete"]
         },
         "ant": { "anyOf": [{ "$ref": "#/$defs/ant_id" }, { "type": "null" }] },
-        "entity": { "anyOf": [{ "$ref": "#/$defs/symbol" }, { "type": "null" }] },
-        "detail": { "type": ["string", "null"], "description": "Free text, e.g. a failure reason." }
+        "entity": { "anyOf": [{ "$ref": "#/$defs/symbol" }, { "type": "null" }] }
       }
     }
   }

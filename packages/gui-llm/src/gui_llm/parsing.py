@@ -250,7 +250,7 @@ def build_llm_input(
             kinds = [STRUCTURE_KINDS.get(tile_state.tile_type), OVERLAY_KINDS.get(tile_state.tile_overlay)]
             for kind in filter(None, kinds):
                 symbol = entity_id(kind, tile)
-                entities.append({"id": symbol, "kind": kind, "targeted_by": []})
+                entities.append({"id": symbol, "kind": kind})
                 entity_tiles[symbol] = tile
     locations.update(entity_tiles)
 

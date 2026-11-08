@@ -60,7 +60,7 @@ class EventLog:
                     self._add(now, "apple_delivered", ant=AGENT_NAMES[agent_id], entity="castle")
 
     def _add(self, now: float, event_type: str, ant: str | None = None, entity: str | None = None):
-        self.events.append((now, {"type": event_type, "ant": ant, "entity": entity, "detail": None}))
+        self.events.append((now, {"type": event_type, "ant": ant, "entity": entity}))
 
     def recent(self, now: float) -> list[dict]:
         """
