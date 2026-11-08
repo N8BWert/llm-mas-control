@@ -12,7 +12,7 @@
       "required": ["id", "text"],
       "properties": {
         "id": { "type": "string", "description": "Opaque id for logging." },
-        "text": { "type": "string", "description": "The only source of instructions." }
+        "text": { "type": "string", "description": "The only source of new instructions; interpreted together with memory.recent_exchanges." }
       }
     },
 
