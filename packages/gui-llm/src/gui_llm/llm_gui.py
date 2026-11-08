@@ -20,13 +20,13 @@ from gui_common.gui import AGENT_NAMES, GUI
 from gui_llm.memory import EventLog, Memory
 from gui_llm.parsing import (
     build_llm_input,
-    cmd_id,
     output_to_actions,
     parse_json_lenient,
     parse_json_strict,
     reference_errors,
     schema_errors,
 )
+from gui_llm.sequencer import Sequencer
 from gui_llm.tools import TOOLS, execute_tool
 
 # The number of attempts the LLM gets to produce a valid response
@@ -53,6 +53,7 @@ class LLMGui(GUI):
         self.response_history: list[str] = []  # unused for now
         self.event_log = EventLog()
         self.memory = Memory()
+        self.sequencer = Sequencer(len(self.agent_action_queue))
 
         # The log of previous chat messages, scrollable
         self.chat_log = pygame_gui.elements.UITextBox(
@@ -112,7 +113,7 @@ class LLMGui(GUI):
         Every tick
         1. Log what changed in the game
         2. Check for llm completion
-        3. Pop from the queue if finished
+        3. Advance the sequencer and mirror it into the action queues
         4. Draw the GUI
         """
         self.event_log.observe(game_state, time.monotonic())
@@ -120,10 +121,9 @@ class LLMGui(GUI):
         if self.llm_result is not None:
             result, self.llm_result = self.llm_result, None
             self._handle_llm_result(result)
-        # This pop code is broken, shit's getting popped immediately
-        #for agent_state in game_state.agent_states:
-        #    if not agent_state.busy and self.agent_action_queue[agent_state.id]:
-        #        self.agent_action_queue[agent_state.id].pop(0)
+        # Sequencing
+        self.sequencer.update(game_state)
+        self.sequencer.sync(self.agent_action_queue)
         # GUI
         self.gui_manager.update(self.clock.get_time() / 1000.0)
         self.gui_manager.draw_ui(self.screen)
@@ -158,6 +158,7 @@ class LLMGui(GUI):
                     self.agent_action_queue,
                     self.event_log.recent(now),
                     self.memory.snapshot(now),
+                    self.sequencer.looping_ids(),
                 )
                 self.llm_busy = True
                 threading.Thread(
@@ -267,18 +268,18 @@ class LLMGui(GUI):
         self.memory.record(result["user_text"], out, time.monotonic())
         for cancel in out["cancels"]:
             for name in cancel["subjects"]:
-                queue = self.agent_action_queue[AGENT_NAMES.index(name)]
+                agent_id = AGENT_NAMES.index(name)
                 if cancel["scope"] == "all":
-                    queue.clear()
+                    self.sequencer.cancel_all(agent_id)
                 elif cancel["scope"] == "current":
-                    del queue[:1]
+                    self.sequencer.cancel_current(agent_id)
                 else:
-                    queue[:] = [action for action in queue if cmd_id(action) not in cancel["command_ids"]]
-        for agent_id, mode, actions in result["actions"]:
+                    self.sequencer.cancel_ids(agent_id, cancel["command_ids"])
+        for agent_id, mode, loop, actions in result["actions"]:
             if mode == "replace":
-                self.agent_action_queue[agent_id] = actions
+                self.sequencer.replace(agent_id, actions, loop)
             else:
-                self.agent_action_queue[agent_id].extend(actions)
+                self.sequencer.append(agent_id, actions, loop)
 
         self._post_message("LLM", out["summary"])
         for unhandled in out["unhandled"]:

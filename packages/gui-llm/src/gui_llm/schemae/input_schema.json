@@ -98,7 +98,7 @@
     "queued_command": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cmd_id", "action", "target", "status"],
+      "required": ["cmd_id", "action", "target", "status", "in_loop"],
       "properties": {
         "cmd_id": { "type": "string" },
         "action": { "$ref": "#/$defs/action" },
@@ -106,7 +106,8 @@
           "anyOf": [{ "$ref": "#/$defs/symbol" }, { "$ref": "#/$defs/cell" }],
           "description": "An ant id, an entity id, or a grid cell such as 'C5'."
         },
-        "status": { "enum": ["active", "queued"] }
+        "status": { "enum": ["active", "queued"] },
+        "in_loop": { "type": "boolean", "description": "True when this command is part of a loop that repeats until cancelled." }
       }
     },
     "ant": {
@@ -120,7 +121,7 @@
         "queue": {
           "type": "array",
           "items": { "$ref": "#/$defs/queued_command" },
-          "description": "Active command first, then queued commands in order. Comes from the sequencer, not the engine."
+          "description": "Active command first, then queued commands in order. A looping queue shows one full pass. Comes from the sequencer, not the engine."
         }
       }
     },

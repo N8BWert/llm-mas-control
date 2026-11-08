@@ -1,3 +1,7 @@
+"""
+The set of functions necessary for converting LLM language to game language.
+"""
+
 import json
 import math
 import re
@@ -126,6 +130,8 @@ def reference_errors(state, out):
         for j, s in enumerate(o["steps"]):
             sw = f"{where}.steps[{j}]"
             action, target = s["action"], s["target"]
+            if o["loop"] and action.startswith("build_"):
+                errs.append(f"{sw}: a loop cannot contain build steps (each pass would build again)")
             if target == "just_built":
                 if WORK_AFTER_BUILD.get(prev_action) != action:
                     errs.append(f"{sw}: just_built must directly follow a matching build step")
@@ -192,7 +198,7 @@ def _position_to_tile(position, game_state: GameState) -> Tile:
 def cmd_id(agent_action: AgentAction) -> str:
     return f"cmd_{id(agent_action)}"
 
-def _queued_command(agent_action: AgentAction, active: bool, game_state: GameState) -> dict:
+def _queued_command(agent_action: AgentAction, active: bool, in_loop: bool, game_state: GameState) -> dict:
     action = agent_action.action
     tile = _position_to_tile(action.position, game_state) if isinstance(action, MoveAction) else action.tile
     return {
@@ -200,6 +206,7 @@ def _queued_command(agent_action: AgentAction, active: bool, game_state: GameSta
         "action": ACTION_NAMES[type(action)],
         "target": tile_to_cell(tile),
         "status": "active" if active else "queued",
+        "in_loop": in_loop,
     }
 
 def entity_id(kind: str, tile: Tile) -> str:
@@ -211,9 +218,11 @@ def build_llm_input(
     queues: list[list[AgentAction]],
     events: list[dict],
     memory: dict,
+    looping: set[int],
 ) -> tuple[dict, dict[str, Tile], dict[str, Tile]]:
     """
     Snapshots the game as the input_schema.json object the LLM expects.
+    `looping` holds the id() of every queued action that is part of a loop.
 
     Returns:
         The LLM input, the tile of each entity id in it (needed to translate the output),
@@ -228,7 +237,7 @@ def build_llm_input(
             "id": name,
             "idle": not agent.busy and not queue,
             "carrying_apple": agent.carrying_apple,
-            "queue": [_queued_command(a, i == 0, game_state) for i, a in enumerate(queue)],
+            "queue": [_queued_command(a, i == 0, id(a) in looping, game_state) for i, a in enumerate(queue)],
         })
         locations[name] = _position_to_tile(agent.position, game_state)
 
@@ -270,9 +279,9 @@ def _free_neighbor(tile: Tile, game_state: GameState) -> Tile | None:
                 return Tile(x, y)
     return None
 
-def output_to_actions(out: dict, entity_tiles: dict[str, Tile], game_state: GameState) -> list[tuple[int, str, list[AgentAction]]]:
+def output_to_actions(out: dict, entity_tiles: dict[str, Tile], game_state: GameState) -> list[tuple[int, str, bool, list[AgentAction]]]:
     """
-    Translates validated LLM orders into a (agent id, mode, actions) tuple per ant per order.
+    Translates validated LLM orders into a (agent id, mode, loop, actions) tuple per ant per order.
 
     Raises:
         ValueError: If a step can't be placed on the map.
@@ -304,5 +313,5 @@ def output_to_actions(out: dict, entity_tiles: dict[str, Tile], game_state: Game
             for action, tile in steps:
                 goal = tile.center(tile_width, tile_height) if action == "move" else tile
                 actions.append(AgentAction(agent_id=agent_id, action=ACTION_TYPES[action](goal)))
-            translated.append((agent_id, order["mode"], actions))
+            translated.append((agent_id, order["mode"], order["loop"], actions))
     return translated
