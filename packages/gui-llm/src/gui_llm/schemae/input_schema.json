@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Lieutenant input",
-  "description": "A JSON object corresponding to a player's request to the LLM: the transcript plus a text-only snapshot of the game as the player sees it.",
+  "description": "A JSON object corresponding to a player's request to the LLM: the player's typed message plus a text-only snapshot of the game as the player sees it.",
   "type": "object",
   "additionalProperties": false,
   "required": ["request", "game", "ants", "entities", "proximity", "events", "memory"],
