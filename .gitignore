@@ -343,3 +343,7 @@ TSWLatexianTemp*
 
 # Pytest
 .pytest_cache/*
+
+# API keys YAYYY
+*.env
+.env
