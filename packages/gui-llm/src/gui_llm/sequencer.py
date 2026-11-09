@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from common.agent_action import AgentAction
 from common.game_state import GameState
+
 from gui_llm.parsing import cmd_id
 
 # Absorb engine latency by having some ticks of tolerance before interpreting idle as idle.
