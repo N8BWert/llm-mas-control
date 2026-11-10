@@ -4,6 +4,7 @@ Main entrypoint for the game engine
 
 import argparse
 import os
+import time
 
 import numpy as np
 from common.agent_action import AgentActionRequest
@@ -103,8 +104,9 @@ def main():
         robotarium,
         level
     )
-    for _ in range(TOTAL_TICKS):
-        e.tick()
+    start_time = time.time()
+    while (time.time() - start_time) < 10 * 60:
+        e.tick(tick=int((time.time() - start_time) * 30))
 
     points, times_eaten, num_agents, num_farms, num_quarries, idle_ticks, points_over_time = e.report()
     print(f"Game over! Points: {points}, Number of Ants: {num_agents}, Times eaten: {times_eaten}, Idle Percentages: {[round(tick / TOTAL_TICKS * 100, 2) for tick in idle_ticks]}")

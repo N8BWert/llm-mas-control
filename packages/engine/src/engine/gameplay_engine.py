@@ -132,12 +132,13 @@ class GameplayEngine:
                         self.tiles[x + self.tiles_x * y] = copy.deepcopy(self.tiles[x + self.tiles_x * y])
         self.tiles_updated = False
 
-    def tick(self):
+    def tick(self, tick: int):
         """
         Advance the gameplay by one tick, processing all current actions and updating the game state accordingly.
         """
         # Get the current pose of robots form the robotarium
         # start = time.time()
+        self.current_tick = tick
         x = self.robotarium.get_poses()
         x_si = self.uni_to_si(x)
         dxi = np.zeros((2, self.max_agents))
@@ -307,7 +308,6 @@ class GameplayEngine:
         # Update the graphics of the robotarium
         self.draw()
         self.robotarium.step()
-        self.current_tick += 1
 
         # Publish the current state of the game
         self._publish_game_state(x)
